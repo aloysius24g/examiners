@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "CollegeWorked" ALTER COLUMN "recordedAt" SET DEFAULT CURRENT_TIMESTAMP;

@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AccountType{
+  TS
+  NS
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  accountType AccountType
+  passHash String @db.Char(60)
+  active Boolean @default(true)
+  name String @db.VarChar(50)
+  salutation String @db.VarChar(5)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  nsDetails NsUser?
+  tsDetails TsUser?
+
+  @@index([id])
+}
+
+model NsUser {
+  userId Int @unique @id
+  coreDetails User @relation(fields: [userId], references: [id]) 
+  userName String @db.VarChar(30)
+  roleName String @db.VarChar(50)
+
+  @@index([userId])
+}
+
+model TsUser {
+  userId Int @unique @id 
+  coreDetails User @relation(fields: [userId], references: [id]) 
+  aicteNo String @unique @db.Char(12)
+  annaUnivNo String @unique @db.Char(12) //change this after knowing about the structure of the anna univ number.
+  department String @db.VarChar(60)
+  yearOfExperience Int
+  internal Boolean
+  email String @unique @db.VarChar(254)
+  phone String @unique @db.VarChar(15)
+  emailVerified Boolean @default(false)
+  phoneVerified Boolean @default(false)
+  coursesLastUpdated DateTime? @db.Timestamptz(3)
+  userVerified Boolean
+  hasUnVerifiedUpdate Boolean @default(false)
+
+  preferences Preference[]
+  theoriesHandled TheoryHandled[]
+  practicalsHandled PracticalHandled[]
+  collegesWorked CollegeWorked[]
+
+  @@index([userId])
+}
+
+enum ExaminerRole{
+  questionScrutinizer
+  questionSetter
+  hallSuperintendent
+  reviewer
+}
+
+model Preference {
+  userId Int
+  tsUser TsUser @relation(fields: [userId], references: [userId])
+  preferredFor ExaminerRole
+
+  @@id([userId, preferredFor])
+}
+
+model TheoryHandled {
+  userId Int
+  tsUser TsUser @relation(fields: [userId], references: [userId])
+  courseCode String @db.VarChar(10)
+  courseTitle String @db.VarChar()
+  chosenTime DateTime @db.Timestamptz(3)
+
+  @@id([userId, courseCode, chosenTime])
+  @@index([courseCode])
+}
+
+model PracticalHandled {
+  userId Int
+  tsUser TsUser @relation(fields: [userId], references: [userId])
+  courseCode String @db.VarChar(10)
+  courseTitle String @db.VarChar()
+  chosenTime DateTime @db.Timestamptz(3)
+   
+  @@id([userId, courseCode, chosenTime])
+  @@index([courseCode])
+}
+
+model CollegeWorked {
+  id String @id @default(cuid())
+  userId Int
+  tsUser TsUser @relation(fields: [userId], references: [userId])
+  designation String @db.VarChar(30)
+  collegeName String @db.VarChar(200)
+  collegePlace String @db.VarChar(30)
+  collegePinCode String @db.Char(6)
+  idCardImageFileName String @unique @db.VarChar()
+  idCardImage IdCardImage @relation(fields: [idCardImageFileName], references: [fileName])
+  recordedAt DateTime @db.Timestamptz(3) @default(now())
+
+  @@index([userId])
+}
+
+model IdCardImage {
+  fileName String @id @db.VarChar()
+  
+  forFacultyProof CollegeWorked?
+  
+  @@index([fileName])
+}
