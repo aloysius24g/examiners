@@ -1,3 +1,4 @@
+import { PrismaClientValidationError } from '@prisma/client/runtime/client';
 import db from '../utils/database.js';
 import prismaErrorAsValue from '../utils/prismaErrorAsValue.js';
 import { success } from '../utils/result.js';
@@ -9,8 +10,8 @@ import { success } from '../utils/result.js';
 // handled practical course
 
 // TODO
-// there is no error handling currently in this file.
-// plan to add one, so that neat error messages can be given to srevice or any top layer.
+// make the type of each dal function neat, so that it displayes like resutl<returntype>
+// now its clunky, but still works. go ahead and come again after becomming a ts jod.
 
 interface TsUserCreateParams {
   name: string,
@@ -69,12 +70,7 @@ async function createTsUser(userParams: TsUserCreateParams) {
       }
     });
 
-    return success({
-      id: tsUser.id,
-      accountType: tsUser.accountType,
-      salutation: tsUser.salutation,
-      name: tsUser.name
-    });
+    return success(tsUser);
   }catch(e) {
     return prismaErrorAsValue(e);
   }
@@ -106,7 +102,7 @@ async function updateTsContact(id: number, updateParams: TsUserContactUpdatePara
   }
 }
 
-async function getTsUserBioById(id: number) {
+async function getTsUserBio(id: number) {
   try{
     const tsUser = await db.tsUser.findUniqueOrThrow({
       where: {
@@ -127,6 +123,10 @@ async function getTsUserBioById(id: number) {
     // check the collage details is not null.
     // do this after planing a well error handling machanism
 
+    if(tsUser.collegesWorked[0] === undefined) {
+      throw new Error('TsUser entity with no CollegeWorked Record'); // ithu nadaka vaipu illa.
+    }
+
     return success({
       salutaion: tsUser.coreDetails.salutation,
       name: tsUser.coreDetails.name,
@@ -143,7 +143,71 @@ async function getTsUserBioById(id: number) {
   }
 }
 
-async function getTsUserContactById(id: number) {
+async function getTsUserUsingAicteNo(aicteNo: string) {
+  try{
+    const tsUser = await db.tsUser.findUniqueOrThrow({
+      where: {
+        aicteNo: aicteNo
+      },
+      include: {
+        coreDetails: true
+      }
+    });
+    return success(tsUser);
+  }catch(e) {
+    return prismaErrorAsValue(e);
+  }
+}
+
+async function getTsUserUsingAnnaUnivNo(annaUnivNo: string) {
+  try{
+    const tsUser = await db.tsUser.findUniqueOrThrow({
+      where: {
+        annaUnivNo: annaUnivNo
+      },
+      include: {
+        coreDetails: true
+      }
+    });
+    return success(tsUser);
+  }catch(e) {
+    return prismaErrorAsValue(e);
+  }
+}
+
+async function getTsUserUsingEmail(email: string) {
+  try{
+    const tsUser = await db.tsUser.findUniqueOrThrow({
+      where: {
+        email: email
+      },
+      include: {
+        coreDetails: true
+      }
+    });
+    return success(tsUser);
+  }catch(e) {
+    return prismaErrorAsValue(e);
+  }
+}
+
+async function getTsUserUsingPhone(phone: string) {
+  try{
+    const tsUser = await db.tsUser.findUniqueOrThrow({
+      where: {
+        phone: phone
+      },
+      include: {
+        coreDetails: true
+      }
+    });
+    return success(tsUser);
+  }catch(e) {
+    return prismaErrorAsValue(e);
+  }
+}
+
+async function getTsUserContact(id: number) {
   try{
     const tsUser = await db.tsUser.findUniqueOrThrow({
       where: {
@@ -358,12 +422,16 @@ async function updateWorkPlace(id: number, workPlaceParams: createWorkPlaceParam
 
 export {
   createTsUser,
-  getTsUserBioById,
-  getTsUserContactById,
+  getTsUserBio,
+  getTsUserContact,
   getTsUserTheoryCourses,
   getTsUserPracticalCourses,
+  getTsUserUsingAicteNo,
+  getTsUserUsingAnnaUnivNo,
+  getTsUserUsingEmail,
+  getTsUserUsingPhone,
   updateTheroyCourses,
   updatePracticalCourses,
   updateTsContact,
-  updateWorkPlace
+  updateWorkPlace,
 }

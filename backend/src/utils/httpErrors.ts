@@ -1,77 +1,60 @@
-class HTTPError extends Error {
+export class HttpError extends Error {
   public readonly originError: Error | null = null;
-  constructor(message: string, options? : {originError?: Error}) {
+  public readonly statusCode: number;
+  constructor(statusCode: number, message: string, options? : {originError?: Error}) {
     super(message);
     this.name = 'HTTPError'
+    this.statusCode = statusCode
     Object.assign(this, options)
     return this;
   }
 }
 
-class BadRequestError extends HTTPError{
-  public readonly name: string
-  constructor(message: string, options?: {originError?: Error}) {
-    super(message, options);
-    this.name = 'BadRequestError';
-    Object.assign(this, options);
-    return this;
-  }
-}
-class ResourceNotFoundError extends HTTPError{
-  public readonly name: string
-  constructor(message: string, options?: {originError?: Error}) {
-    super(message, options);
-    this.name = 'ResourceNotFoundError';
-    Object.assign(this, options);
-    return this;
+/** 400 Bad Request */
+export class BadRequestError extends HttpError {
+  constructor(message = "Bad Request") {
+    super(400, message);
   }
 }
 
-class UnAuthorisedError  extends HTTPError{
-  public readonly name: string
-  constructor(message: string, options?: {originError?: Error}) {
-    super(message, options);
-    this.name = 'UnAuthorisedError';
-    Object.assign(this, options);
-    return this;
+/** 401 Unauthorized */
+export class UnauthorizedError extends HttpError {
+  constructor(message = "Unauthorized") {
+    super(401, message);
   }
 }
 
-class ForbiddenError  extends HTTPError{
-  public readonly name: string
-  constructor(message: string, options?: {originError?: Error}) {
-    super(message, options);
-    this.name = 'ForbiddenError';
-    Object.assign(this, options);
-    return this;
+/** 403 Forbidden */
+export class ForbiddenError extends HttpError {
+  constructor(message = "Forbidden") {
+    super(403, message);
   }
 }
 
-class InternalServerError  extends HTTPError{
-  public readonly name: string
-  constructor(message: string, options?: {originError?: Error}) {
-    super(message, options);
-    this.name = 'ForbiddenError';
-    Object.assign(this, options);
-    return this;
+/** 404 Not Found */
+export class NotFoundError extends HttpError {
+  constructor(message = "Not Found") {
+    super(404, message);
   }
 }
 
-class CriticalError extends HTTPError{
-  public readonly name: string
-  constructor(message: string, options?: {originError?: Error}) {
-    super(message, options);
-    this.name = 'CriticalError';
-    Object.assign(this, options);
-    return this;
+/** 409 Conflict */
+export class ConflictError extends HttpError {
+  constructor(message = "Conflict") {
+    super(409, message);
   }
 }
 
-export {
-  BadRequestError,
-  ResourceNotFoundError,
-  ForbiddenError,
-  UnAuthorisedError,
-  InternalServerError,
-  CriticalError
-};
+/** 422 Validation Error */
+export class ValidationError extends HttpError {
+  constructor(message = "Validation Failed") {
+    super(422, message);
+  }
+}
+
+/** 500 Internal Server Error */
+export class InternalServerError extends HttpError {
+  constructor(message = "Internal Server Error") {
+    super(500, message);
+  }
+}

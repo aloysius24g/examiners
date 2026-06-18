@@ -13,7 +13,7 @@ const envSchema =  z.object({
   //.refine( v => v <= PORT_MAX, {message: 'port execced the maximum range'})
   //.refine( v => v > 0, {message: 'port should be higher than 0'}),
   //JWT_ACCESS_TOKEN_SEC: z.string().length(44),
-  //JWT_REFRESH_TOKEN_SEC: z.string().length(44),
+  JWT_REFRESH_TOKEN_SEC: z.string().length(44),
   DATABASE_URL: z.string(),
   DOTENV_CONFIG_QUIET: z.enum(['true', 'false']).transform(v => v === 'true')
 });

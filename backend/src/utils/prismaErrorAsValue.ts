@@ -1,7 +1,7 @@
 import { Prisma } from "../../generated/prisma/client.js";
 import { error, Result } from "./result.js";
 
-type PrismaError =
+type DalError =
   | {
       cause: 'DuplicateRecord';
       message: string;
@@ -36,7 +36,7 @@ type PrismaError =
       message: string;
     };
 
-function prismaErrorAsValue(e: unknown): Result<never, PrismaError> {
+function prismaErrorAsValue(e: unknown): Result<never, DalError> {
   if(! (e instanceof Error)) {
     throw e;
   }
