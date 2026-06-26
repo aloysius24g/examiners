@@ -1,13 +1,18 @@
 import express, { NextFunction, Request, Response } from "express";
+import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 import swaggerUi from "swagger-ui-express";
 import * as swaggerDocument from "../generated/tsoa/docs/swagger.json" with {type: 'json'}
 import { RegisterRoutes } from "../generated/tsoa/routes/routes.js";
-import { ConflictError, HttpError, InternalServerError, ValidationError } from "./utils/httpErrors.js";
+import { ConflictError, HttpError, InternalServerError, UnauthorizedError, ValidationError } from "./utils/httpErrors.js";
 import { ValidateError } from 'tsoa';
 import multer from "multer";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import envProvider from "./utils/envProvider.js";
 import { createIdCardImage } from "./dal/idCardImageDal.js";
+import { userAls } from "./utils/userContext.js";
+import { contextSchema } from "./validators/contextValidators.js";
 
 const diskStorage = multer({
   limits: {
@@ -35,16 +40,36 @@ const diskStorage = multer({
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser())
 
-type UserContext = {
-  id: number,
-  accountType: string,
-  name: string
-}
-//app.use((req: Request, res: Response, next: NextFunction) => {
-//  const token 
-//
-//})
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  // carefull here always return in gaurds.
+
+  // if no refresh token continue with null context
+  if(! refreshToken) {
+    return userAls.run(null, () => next())
+  }
+
+  let payload;
+  try{
+    payload = jwt.verify(refreshToken, envProvider.JWT_REFRESH_TOKEN_SEC);
+  }catch(e) {
+    if(e instanceof jwt.TokenExpiredError) {
+      throw new UnauthorizedError('Session Expired');
+    }
+    throw new UnauthorizedError('Invalid session token');
+  }
+
+  // if with token verify sign, then verify structure, then continue with the context. 
+  const contextResult = contextSchema.safeParse(payload) ;
+  if(! contextResult.success) {
+    throw new UnauthorizedError('Invalid token structure')
+  }
+  return userAls.run(contextResult.data, () => next())
+});
+
 
 app.post('/id-card-image', diskStorage.single('file'), async (req, res)=> {
   const fileName = req.file?.filename;

@@ -1,4 +1,3 @@
-import { PrismaClientValidationError } from '@prisma/client/runtime/client';
 import db from '../utils/database.js';
 import prismaErrorAsValue from '../utils/prismaErrorAsValue.js';
 import { success } from '../utils/result.js';
@@ -135,7 +134,9 @@ async function getTsUserBio(id: number) {
       collegeName: tsUser.collegesWorked[0]?.collegeName,
       collegePlace: tsUser.collegesWorked[0]?.collegePlace,
       collegePinCode: tsUser.collegesWorked[0]?.collegePinCode,
+      department: tsUser.department,
       designation: tsUser.collegesWorked[0]?.designation,
+      yearOfExperience: tsUser.yearOfExperience,
       internal: tsUser.internal
     });
   }catch(e) {
@@ -238,7 +239,7 @@ async function getTsUserTheoryCourses(id: number) {
     const latestUpdatedTime = ag._max.chosenTime;
 
     if(latestUpdatedTime === null) {
-      return [];
+      return success([]);
     }
 
     const tsUser = await db.tsUser.findUniqueOrThrow({
@@ -285,7 +286,7 @@ async function getTsUserPracticalCourses(id: number) {
     const latestUpdatedTime = ag._max.chosenTime;
 
     if(latestUpdatedTime === null) {
-      return [];
+      return success([]);
     }
 
     const tsUser = await db.tsUser.findUniqueOrThrow({

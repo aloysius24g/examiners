@@ -3,7 +3,7 @@ import { z } from "zod";
 //TODO
 //better error messages
 
-export const UserRegistrationSchema = z.object({
+export const tsUserRegistrationSchema = z.object({
   name: z.string().min(1).max(50),
   email: z.email(),
   password: z
