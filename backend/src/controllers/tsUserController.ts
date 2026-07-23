@@ -1,16 +1,17 @@
-import { Body, Controller, Get, Path, Post, Put, Query, Route } from "tsoa";
-import { getTsUser, registerTsUser } from "../services/tsUserService.js";
+import { Body, Controller, Get, Path, Post, Put, Route } from "tsoa";
+import * as tsUserService from "../services/tsUserService.js";
 import { ConflictError, InternalServerError, NotFoundError, UnauthorizedError, ValidationError } from "../utils/httpErrors.js";
 import { CourseDTO } from "./courseController.js";
 
 export interface TsUserRegistrationDTO {
   name: string,
   email: string,
+  otp: string,
   password: string,
   salutation: string,
   phone: string,
-  aicteNo: string,
-  annaUnivNo: string,
+  aicteNo: string | null,
+  annaUnivNo: string | null,
   yearOfExperience: number,
   collegeName: string,
   collegePlace: string,
@@ -29,9 +30,9 @@ export interface TsUserMinimalDTO {
 
 type TsUserInternalFields = {
   userVerified: boolean,
+  userBlacklisted: boolean,
   emailVerified: boolean,
   phoneVerified: boolean,
-  idCardImageFileName: string,
   preferences: string[]
 }
 
@@ -41,17 +42,18 @@ export type TsUserDetailedDTO =
     bio: {
       name: string,
       salutation: string,
-      aicteNo: string,
-      annaUnivNo: string,
+      aicteNo: string | null,
+      annaUnivNo: string | null,
       yearOfExperience: number,
+      department: string,
     },
     workPlace: {
       internal: boolean,
-      department: string,
       designation: string,
       collegeName: string,
       collegePlace: string,
       collegePinCode: string,
+      idCardImageFileName: string,
     },
     contact: {
       email: string,
@@ -61,19 +63,38 @@ export type TsUserDetailedDTO =
     practicalHandled: CourseDTO[]
   }
 
+export type TsUserListDTO = (TsUserDetailedDTO & {id: number})[]
+
 export type WorkPlaceDTO = {
-  internal: boolean,
-  department: string,
   designation: string,
   collegeName: string,
   collegePlace: string,
   collegePinCode: string,
+  idCardImageFileName: string
 }
 
 export type ContactDTO = {
   email: string,
   phone: string
 }
+
+export type UpdatablePersonalInfoDTO = {
+  aicteNo: string | null,
+  annaUnivNo: string |null,
+  yearOfExperience: number
+}
+
+
+export type TsUserQuery = {
+  filterField: 
+      'name' 
+      | 'theory-handled'
+      | 'practical-handled'
+      | 'preference',
+  filterValue: string
+}
+
+export type ContactDTOWithOTP = ContactDTO & {otp: string}
 
 @Route("examiners")
 export class TsUserController extends Controller {
@@ -82,7 +103,7 @@ export class TsUserController extends Controller {
   public async createExaminer(
     @Body() user: TsUserRegistrationDTO
   ): Promise<TsUserMinimalDTO> {
-    const creationResponse = await registerTsUser(user);
+    const creationResponse = await tsUserService.registerTsUser(user);
 
     if(! creationResponse.success) {
       switch(creationResponse.error.cause) {
@@ -91,10 +112,12 @@ export class TsUserController extends Controller {
         case "ValidationError":
           throw new ValidationError(creationResponse.error.message);
         case "BussinessConstraintViolation":
-        case "PermissionError":
           throw new ConflictError(creationResponse.error.message);
         case "NotFoundError":
           throw new NotFoundError(creationResponse.error.message);
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(creationResponse.error.message);
       }
     }
 
@@ -103,15 +126,24 @@ export class TsUserController extends Controller {
 
   @Get()
   public async getExaminers(
-    @Query('filter-by') filterBy?:
-      'name' 
-      | 'college-name'
-      | 'theory-handled'
-      | 'practical-handled'
-      | 'preference',
-    @Query('filter-value') filterValue?: string,
-    @Query('page') page?: number
-  ): Promise<void> {
+    //TODO 
+    //@Queries() queries?: TsUserQuery
+  ): Promise<TsUserListDTO> {
+    const res = await tsUserService.getTsUsers();
+    if(! res.success) {
+      switch(res.error.cause) {
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(res.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(res.error.message);
+        case "ValidationError":
+        case "BussinessConstraintViolation":
+        case "DbError":
+          throw new InternalServerError(res.error.message);
+      }
+    }
+    return res.value;
   } 
 
   @Get('{id}')
@@ -119,11 +151,12 @@ export class TsUserController extends Controller {
     @Path() id: number
   ): Promise<TsUserDetailedDTO> {
 
-    const tsUserResponse = await getTsUser(id);  
+    const tsUserResponse = await tsUserService.getTsUser(id);  
 
     if(! tsUserResponse.success) {
       switch(tsUserResponse.error.cause) {
         case "PermissionError":
+        case "AuthenticationError":
           throw new UnauthorizedError(tsUserResponse.error.message);
         case "NotFoundError":
           throw new NotFoundError(tsUserResponse.error.message);
@@ -160,4 +193,221 @@ export class TsUserController extends Controller {
 //    @Path() id: number,
 //  ): Promise<CourseDTO[]> {
 //  }
+  @Put('{id}/workplace/')
+  public async updateWorkPlace(
+    @Path() id: number,
+    @Body() workPlace: WorkPlaceDTO,
+  ): Promise<WorkPlaceDTO> {
+    const updateResponse = await tsUserService.updateWorkPlace(id, workPlace);
+
+    if (!updateResponse.success) {
+      switch (updateResponse.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(updateResponse.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(updateResponse.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(updateResponse.error.message);
+        case "PermissionError":
+          case "AuthenticationError":
+          throw new UnauthorizedError(updateResponse.error.message);
+      }
+    }
+
+    return updateResponse.value;
+  }
+
+  @Put('{id}/contact/')
+  public async updateContact(
+    @Path() id: number,
+    @Body() contact: ContactDTOWithOTP,
+  ): Promise<ContactDTO> {
+    const updateResponse = await tsUserService.updateContact(id, contact);
+
+    if (!updateResponse.success) {
+      switch (updateResponse.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(updateResponse.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(updateResponse.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(updateResponse.error.message);
+        case "PermissionError":
+          case "AuthenticationError":
+          throw new UnauthorizedError(updateResponse.error.message);
+      }
+    }
+
+    return updateResponse.value;
+  }
+
+  @Put('{id}/theoryHandled/')
+  public async updateTheoryHandled(
+    @Path() id: number,
+    @Body() courses: CourseDTO[],
+  ): Promise<CourseDTO[]> {
+    const updateResponse = await tsUserService.updateCoursesHandled('therory' , id, courses);
+
+    if (!updateResponse.success) {
+      switch (updateResponse.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(updateResponse.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(updateResponse.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(updateResponse.error.message);
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(updateResponse.error.message);
+      }
+    }
+
+    return updateResponse.value;
+  }
+
+  @Put('{id}/practicalHandled/')
+  public async updatePracticalHandled(
+    @Path() id: number,
+    @Body() courses: CourseDTO[],
+  ): Promise<CourseDTO[]> {
+    const updateResponse = await tsUserService.updateCoursesHandled('practical' , id, courses);
+
+    if (!updateResponse.success) {
+      switch (updateResponse.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(updateResponse.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(updateResponse.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(updateResponse.error.message);
+        case "PermissionError":
+          case "AuthenticationError":
+          throw new UnauthorizedError(updateResponse.error.message);
+      }
+    }
+
+    return updateResponse.value;
+  }
+
+  @Put('{id}/blacklisted/')
+  public async updateBlacklisted(
+    @Path() id: number,
+    @Body() body: {userBlacklisted: boolean},
+  ): Promise<{userBlacklisted: boolean}> {
+
+    const updateResponse = await tsUserService.updateIsBlacklisted(id, body.userBlacklisted);
+
+    if (!updateResponse.success) {
+      switch (updateResponse.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(updateResponse.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(updateResponse.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(updateResponse.error.message);
+        case "PermissionError":
+          case "AuthenticationError":
+          throw new UnauthorizedError(updateResponse.error.message);
+      }
+    }
+
+    return {
+      userBlacklisted: updateResponse.value
+    }
+  }
+
+  @Put('{id}/verified/')
+  public async updateVerified(
+    @Path() id: number,
+    @Body() body: {userVerified: boolean},
+  ): Promise<{userVerified: boolean}> {
+
+    const updateResponse = await tsUserService.updateIsVerified(id, body.userVerified);
+
+    if (!updateResponse.success) {
+      switch (updateResponse.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(updateResponse.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(updateResponse.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(updateResponse.error.message);
+        case "PermissionError":
+          case "AuthenticationError":
+          throw new UnauthorizedError(updateResponse.error.message);
+      }
+    }
+
+    return {
+      userVerified: updateResponse.value
+    }
+  }
+
+  @Put('{id}/preferences/')
+  public async updatePreferences(
+    @Path() id: number,
+    @Body() body: {preferences: string[]},
+  ): Promise<{preferences: string[]}> {
+
+    const updateResponse = await tsUserService.updatePreferences(id, body.preferences);
+
+    if (!updateResponse.success) {
+      switch (updateResponse.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(updateResponse.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(updateResponse.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(updateResponse.error.message);
+        case "PermissionError":
+          case "AuthenticationError":
+          throw new UnauthorizedError(updateResponse.error.message);
+      }
+    }
+
+    return {
+      preferences: updateResponse.value
+    }
+  }
+
+  @Put('{id}/personal/')
+  public async updatePersonalInformation(
+    @Path() id: number,
+    @Body() body: UpdatablePersonalInfoDTO,
+  ): Promise<UpdatablePersonalInfoDTO> {
+
+    const updateResponse = await tsUserService.updatePersonalInformation(id, body);
+
+    if (!updateResponse.success) {
+      switch (updateResponse.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(updateResponse.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(updateResponse.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(updateResponse.error.message);
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(updateResponse.error.message);
+      }
+    }
+
+    return updateResponse.value;
+  }
 }

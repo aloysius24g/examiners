@@ -12,18 +12,21 @@ interface NsUserCreationParams {
 
 async function createNsUser(userParams: NsUserCreationParams) {
   try{
-    const user = await db.user.create({
+    const user = await db.nsUser.create({
       data: {
-        name: userParams.name,
-        accountType: 'NS',
-        salutation: userParams.saluation,
-        passHash: userParams.passHash,
-        nsDetails: {
+        roleName: userParams.roleName,
+        userName: userParams.userName,
+        coreDetails: {
           create: {
-            userName: userParams.userName,
-            roleName: userParams.roleName
+            name: userParams.name,
+            accountType: 'NS',
+            salutation: userParams.saluation,
+            passHash: userParams.passHash,
           }
         }
+      },
+      include: {
+        coreDetails: true
       }
     })
     return success(user);
@@ -70,6 +73,29 @@ async function getNsUserById(id: number) {
     })
     return success(user)
   }catch(e) {
+    return prismaErrorAsValue(e);
+  }
+}
+
+export async function markIsActive(id: number, active: boolean) {
+  try{
+    await db.nsUser.update({
+      where: {
+        userId: id
+      },
+      data: {
+        coreDetails: {
+          update: {
+            active: active
+          }
+        }
+      },
+      include: {
+        coreDetails: true
+      }
+    });
+    return success(active);
+  } catch(e) {
     return prismaErrorAsValue(e);
   }
 }

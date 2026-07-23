@@ -19,6 +19,7 @@ export class courseController{
     if(! coursesRes.success) {
       switch(coursesRes.error.cause) {
         case "PermissionError":
+        case "AuthenticationError":
           throw new UnauthorizedError(coursesRes.error.message);
         case "DbError":
         case "ValidationError":
@@ -38,6 +39,7 @@ export class courseController{
     if(! coursesRes.success) {
       switch(coursesRes.error.cause) {
         case "PermissionError":
+        case "AuthenticationError":
           throw new UnauthorizedError(coursesRes.error.message);
         case "DbError":
         case "ValidationError":

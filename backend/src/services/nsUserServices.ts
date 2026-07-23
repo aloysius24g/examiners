@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import { nsUserRegistrationSchema } from "../validators/nsUserValidators.js";
 import { error, Result, success } from "../utils/result.js";
 import { getUserContext } from "../utils/userContext.js";
+import { abilitiesFor } from "./permissions.js";
 
 export async function registerNsUser(params: NsUserRegistrationDTO): Promise<Result<NsUserMinimalDTO, ServiceError>> {
 
@@ -18,26 +19,11 @@ export async function registerNsUser(params: NsUserRegistrationDTO): Promise<Res
   }
 
   const userContext = getUserContext();
-  if(userContext === null || userContext?.accountType !== 'NS') {
+  const ability = abilitiesFor(userContext);
+  if(ability.cannot('create', 'officer')) {
     return error({
       cause: 'PermissionError',
       message: 'Ns user creation is only available for logged in internal users.'
-    })
-  }
-
-  const nsUserRes = await nsDal.getNsUserById(userContext.id);
-
-  if(! nsUserRes.success) {
-    return error({
-      cause: 'DbError',
-      message: 'cannot find the logged in user\'s info.'
-    })
-  }
-
-  if(nsUserRes.value.roleName !== 'coe') {
-    return error({
-      cause: 'PermissionError',
-      message: 'ns user can only be created by accout with coe role.'
     })
   }
 
@@ -75,40 +61,25 @@ export async function registerNsUser(params: NsUserRegistrationDTO): Promise<Res
     }
   }
   return success({
-    id: userCreationRes.value.id,
-    name: userCreationRes.value.name,
-    salutation: userCreationRes.value.salutation,
-    accountType: userCreationRes.value.accountType,
+    id: userCreationRes.value.coreDetails.id,
+    name: userCreationRes.value.coreDetails.name,
+    salutation: userCreationRes.value.coreDetails.salutation,
+    accountType: userCreationRes.value.coreDetails.accountType,
+    roleName: userCreationRes.value.roleName
   } satisfies NsUserMinimalDTO);
 }
 
 export async function getNsUser(id: number): Promise<Result<NsUserDetailedDTO, ServiceError>> {
 
   const userContext = getUserContext();
-  if(userContext === null || userContext?.accountType !== 'NS') {
+  const ability = abilitiesFor(userContext);
+  if(ability.cannot('view', {kind: 'officer', id: id})) {
     return error({
       cause: 'PermissionError',
       message: 'Ns user can only be viewed by authorized users only'
     })
   }
 
-  const loggedUserRes = await nsDal.getNsUserById(userContext.id);
-
-  if(! loggedUserRes.success) {
-    return error({
-      cause: 'DbError',
-      message: 'cannot find the logged in user\'s info.'
-    })
-  }
-
-  // access only to coe
-  // and themselves
-  if(! (loggedUserRes.value.roleName === 'coe' || loggedUserRes.value.userId === userContext.id)) {
-    return error({
-      cause: 'PermissionError',
-      message: 'ns user can only viewed by previledge user or themselves.'
-    })
-  }
   const userFetchRes = await nsDal.getNsUserById(id)
 
   if(! userFetchRes.success) {
@@ -136,4 +107,39 @@ export async function getNsUser(id: number): Promise<Result<NsUserDetailedDTO, S
     name: userFetchRes.value.coreDetails.name,
     roleName: userFetchRes.value.roleName,
   } satisfies NsUserDetailedDTO)
+}
+
+export async function updateActiveStatus(id: number, active: boolean)
+: Promise<Result<boolean, ServiceError>> {
+  const userContext = getUserContext();
+  const ability = abilitiesFor(userContext);
+  if(ability.cannot('update', 'officerActiveStatus')) {
+    return error({
+      cause: 'PermissionError',
+      message: 'Not enough permission to update active status.'
+    });
+  }
+
+  const updateRes = await nsDal.markIsActive(id, active);
+  if(! updateRes.success) {
+    switch(updateRes.error.cause) {
+      case "ValidationError":
+      case "KnownRequestError":
+        return error({
+          cause: 'ValidationError',
+          message: updateRes.error.message
+        });
+      case "DuplicateRecord":
+      case "RecordNotFound":
+      case "ForeignKeyViolation":
+      case "UnknownRequestError":
+      case "DbUnAvailableError":
+        return error({
+          cause: 'DbError',
+          message: updateRes.error.message
+        });
+    }
+  };
+
+  return success(updateRes.value);
 }

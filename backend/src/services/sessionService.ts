@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { credentialDTO } from "../controllers/sessionController.js";
+import { CredentialDTO, SessionDTO } from "../controllers/sessionController.js";
 import { getTsUserUsingEmail } from "../dal/tsUserDal.js";
 import { error, Result, success } from "../utils/result.js";
 import { ServiceError } from "../utils/serviceErrorAsValue.js";
@@ -10,8 +10,12 @@ import { credentialSchema } from "../validators/sessionValidators.js";
 import { getNsUserByUserName } from "../dal/nsUserDal.js";
 import { NsUserMinimalDTO } from "../controllers/nsUserController.js";
 
-export async function login(credentialParams: credentialDTO):
-  Promise<Result<string, ServiceError | {cause: 'WrongCredentials', message: string}>>
+type sessionCreationRequirements = {
+  token: string,
+  userContext: SessionDTO,
+}
+export async function login(credentialParams: CredentialDTO):
+  Promise<Result<sessionCreationRequirements, ServiceError>>
 {
   let jwtRefreshToken: string | undefined;
 
@@ -50,7 +54,7 @@ export async function login(credentialParams: credentialDTO):
 
     if(! isRightCredentials) {
       return error({
-        cause: 'WrongCredentials',
+        cause: 'AuthenticationError',
         message: 'email and password does not match.'
       })
     }
@@ -63,10 +67,18 @@ export async function login(credentialParams: credentialDTO):
       } satisfies TsUserMinimalDTO,
       envProvider.JWT_REFRESH_TOKEN_SEC,
       {
-        expiresIn: '5m'
+        expiresIn: '30m'
       }
-    )
-    return success(jwtRefreshToken);
+    ) as string
+    return success({
+      token: jwtRefreshToken, 
+      userContext: {
+        id: fetchResponse.value.coreDetails.id,
+        accountType: fetchResponse.value.coreDetails.accountType,
+        salutation: fetchResponse.value.coreDetails.salutation,
+        name: fetchResponse.value.coreDetails.name,
+      }
+    });
   }
 
   if(params.data.accountType === 'NS') {
@@ -97,23 +109,33 @@ export async function login(credentialParams: credentialDTO):
 
     if(! isRightCredentials) {
       return error({
-        cause: 'WrongCredentials',
+        cause: 'AuthenticationError',
         message: 'username and password does not match.'
       })
     }
     jwtRefreshToken = jwt.sign(
       {
         id: fetchResponse.value.coreDetails.id,
-        accountType: fetchResponse.value.coreDetails.accountType,
         salutation: fetchResponse.value.coreDetails.salutation,
-        name: fetchResponse.value.coreDetails.name
+        name: fetchResponse.value.coreDetails.name,
+        accountType: fetchResponse.value.coreDetails.accountType,
+        roleName: fetchResponse.value.roleName
       } satisfies NsUserMinimalDTO,
       envProvider.JWT_REFRESH_TOKEN_SEC,
       {
-        expiresIn: '5m'
+        expiresIn: '30m'
       }
     )
-    return success(jwtRefreshToken);
+    return success({
+      token: jwtRefreshToken,
+      userContext: {
+        id: fetchResponse.value.coreDetails.id,
+        salutation: fetchResponse.value.coreDetails.salutation,
+        name: fetchResponse.value.coreDetails.name,
+        accountType: fetchResponse.value.coreDetails.accountType,
+        roleName: fetchResponse.value.roleName
+      } 
+    });
   }
 
   return error({

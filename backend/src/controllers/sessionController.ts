@@ -1,22 +1,30 @@
-import { Body, Controller, Post, Request, Res, Route } from "tsoa";
+import { Body, Controller, Post, Request, Route } from "tsoa";
 import { login } from "../services/sessionService.js";
 import { ConflictError, InternalServerError, UnauthorizedError, ValidationError } from "../utils/httpErrors.js";
 
-export type credentialDTO = {
+export type CredentialDTO = {
     accountType: 'TS' | 'NS',
     userName?: string,
     email?: string,
     password: string
 } 
 
+export type SessionDTO = {
+  id: number,
+  salutation: string,
+  name: string,
+  accountType: string,
+  roleName?: string
+}
+
 @Route('session')
 export class SessionController extends Controller {
 
   @Post()
   public async createSession(
-    @Body() credentials: credentialDTO,
+    @Body() credentials: CredentialDTO,
     @Request() req: any
-  ): Promise<{message: string}> {
+  ): Promise<SessionDTO> {
     const loginResponse = await login(credentials)
     if(! loginResponse.success) {
       switch(loginResponse.error.cause) {
@@ -28,20 +36,20 @@ export class SessionController extends Controller {
           throw new ConflictError(loginResponse.error.message)
         case "NotFoundError":
         case "PermissionError":
-        case "WrongCredentials":
+        case "AuthenticationError":
           throw new UnauthorizedError(loginResponse.error.message) 
       }
     }
 
-    req.res.cookie('refreshToken', loginResponse.value, {
+    req.res.cookie('refreshToken', loginResponse.value.token, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: 'lax',
-      maxAge: 15 * 60 * 1000
+      maxAge: 30 * 60 * 1000
     })
 
     return {
-      message: 'session created successfully.'
+      ...loginResponse.value.userContext
     }
   } 
 } 

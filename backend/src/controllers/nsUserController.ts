@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Path, Post, Route } from "tsoa";
+import { Body, Controller, Get, Path, Post, Put, Route } from "tsoa";
 import { ConflictError, InternalServerError, NotFoundError, UnauthorizedError, ValidationError } from "../utils/httpErrors.js";
-import { getNsUser, registerNsUser } from "../services/nsUserServices.js";
+import * as nsUserService from "../services/nsUserServices.js";
 
 export interface NsUserRegistrationDTO {
   userName: string,
@@ -14,35 +14,20 @@ export interface NsUserMinimalDTO {
   salutation: string,
   name: string,
   id: number,
-  accountType: string
+  accountType: string,
+  roleName: string
 }
 
 export type NsUserDetailedDTO = Omit<NsUserRegistrationDTO, 'password'> 
 
-export type WorkPlaceDTO = {
-  internal: boolean,
-  department: string,
-  designation: string,
-  collegeName: string,
-  collegePlace: string,
-  collegePinCode: string,
-}
-
-export type ContactDTO = {
-  email: string,
-  phone: string
-}
-
-// invalid belofw
-
 @Route("officers")
-export class TsUserController extends Controller {
+export class NsUserController extends Controller {
 
   @Post()
   public async createOfficer(
     @Body() user: NsUserRegistrationDTO
   ): Promise<NsUserMinimalDTO> {
-    const creationResponse = await registerNsUser(user);
+    const creationResponse = await nsUserService.registerNsUser(user);
 
     if(! creationResponse.success) {
       switch(creationResponse.error.cause) {
@@ -52,6 +37,7 @@ export class TsUserController extends Controller {
           throw new ValidationError(creationResponse.error.message);
         case "BussinessConstraintViolation":
         case "PermissionError":
+        case "AuthenticationError":
           throw new ConflictError(creationResponse.error.message);
         case "NotFoundError":
           throw new NotFoundError(creationResponse.error.message);
@@ -67,15 +53,16 @@ export class TsUserController extends Controller {
   } 
 
   @Get('{id}')
-  public async getOficerById(
+  public async getOfficerById(
     @Path() id: number
   ): Promise<NsUserDetailedDTO> {
 
-    const nsUserResponse = await getNsUser(id);  
+    const nsUserResponse = await nsUserService.getNsUser(id);  
 
     if(! nsUserResponse.success) {
       switch(nsUserResponse.error.cause) {
         case "PermissionError":
+        case "AuthenticationError":
           throw new UnauthorizedError(nsUserResponse.error.message);
         case "NotFoundError":
           throw new NotFoundError(nsUserResponse.error.message);
@@ -87,5 +74,28 @@ export class TsUserController extends Controller {
     }
 
     return nsUserResponse.value;
+  }
+
+  @Put('{id}/active')
+  public async putOfficerActiveStatus(
+    @Path() id: number,
+    @Body() active: boolean 
+  ): Promise<boolean> {
+    const updateRes = await nsUserService.updateActiveStatus(id, active); 
+
+    if(! updateRes.success) {
+      switch(updateRes.error.cause) {
+        case "DbError":
+        case "ValidationError":
+        case "BussinessConstraintViolation":
+        case "NotFoundError":
+          throw new InternalServerError(updateRes.error.message);
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(updateRes.error.message);
+      }
+    }
+
+    return updateRes.value;
   }
 }

@@ -1,3 +1,4 @@
+import { ExaminerRole } from '../../generated/prisma/enums.js';
 import db from '../utils/database.js';
 import prismaErrorAsValue from '../utils/prismaErrorAsValue.js';
 import { success } from '../utils/result.js';
@@ -18,8 +19,8 @@ interface TsUserCreateParams {
   passHash: string,
   salutation: string,
   phone: string,
-  aicteNo: string,
-  annaUnivNo: string,
+  aicteNo: string | null,
+  annaUnivNo: string | null,
   yearOfExperience: number,
   collegeName: string,
   collegePlace: string,
@@ -54,7 +55,7 @@ async function createTsUser(userParams: TsUserCreateParams) {
                 collegeName: userParams.collegeName,
                 idCardImage: {
                   connect: {
-                    fileName: userParams.idCardImageFileName
+                    fileName: userParams.idCardImageFileName,
                   }
                 }
               },
@@ -109,6 +110,7 @@ async function getTsUserBio(id: number) {
       },
       include: {
         coreDetails: true,
+        preferences: true,
         collegesWorked: {
           orderBy: {
             recordedAt: "desc"
@@ -134,10 +136,14 @@ async function getTsUserBio(id: number) {
       collegeName: tsUser.collegesWorked[0]?.collegeName,
       collegePlace: tsUser.collegesWorked[0]?.collegePlace,
       collegePinCode: tsUser.collegesWorked[0]?.collegePinCode,
+      idCardImageFileName: tsUser.collegesWorked[0].idCardImageFileName,
       department: tsUser.department,
       designation: tsUser.collegesWorked[0]?.designation,
       yearOfExperience: tsUser.yearOfExperience,
-      internal: tsUser.internal
+      internal: tsUser.internal,
+      userVerified: tsUser.userVerified,
+      userBlacklisted: tsUser.userBlacklisted,
+      preferredFor: tsUser.preferences.map(p => p.preferredFor),
     });
   }catch(e) {
     return prismaErrorAsValue(e);
@@ -228,17 +234,16 @@ async function getTsUserContact(id: number) {
 
 async function getTsUserTheoryCourses(id: number) {
   try{
-    const ag = await db.theoryHandled.aggregate({
+    const { theoryCoursesLastUpdated }  = await db.tsUser.findFirstOrThrow({
       where: {
         userId: id
       },
-      _max: {
-        chosenTime: true
+      select: {
+        theoryCoursesLastUpdated: true
       }
     });
-    const latestUpdatedTime = ag._max.chosenTime;
 
-    if(latestUpdatedTime === null) {
+    if(theoryCoursesLastUpdated === null) {
       return success([]);
     }
 
@@ -250,7 +255,7 @@ async function getTsUserTheoryCourses(id: number) {
         theoriesHandled: {
           where: {
             chosenTime: {
-              equals: latestUpdatedTime
+              equals: theoryCoursesLastUpdated
             }
           }
         }
@@ -275,17 +280,16 @@ async function getTsUserTheoryCourses(id: number) {
 
 async function getTsUserPracticalCourses(id: number) {
   try{
-    const ag = await db.practicalHandled.aggregate({
+    const { practicalCoursesLastUpdated } = await db.tsUser.findFirstOrThrow({
       where: {
         userId: id
       },
-      _max: {
-        chosenTime: true
+      select: {
+        practicalCoursesLastUpdated: true
       }
-    });
-    const latestUpdatedTime = ag._max.chosenTime;
+    })
 
-    if(latestUpdatedTime === null) {
+    if( practicalCoursesLastUpdated === null) {
       return success([]);
     }
 
@@ -297,7 +301,7 @@ async function getTsUserPracticalCourses(id: number) {
         practicalsHandled: {
           where: {
             chosenTime: {
-              equals: latestUpdatedTime
+              equals: practicalCoursesLastUpdated
             }
           }
         }
@@ -316,7 +320,7 @@ async function getTsUserPracticalCourses(id: number) {
   }
 }
 
-async function updateTheroyCourses(id: number, courses: {courseCode: string, courseTitle: string}[]) {
+async function updateTheoryCourses(id: number, courses: {courseCode: string, courseTitle: string}[]) {
   try{
     const now = new Date();
 
@@ -326,7 +330,7 @@ async function updateTheroyCourses(id: number, courses: {courseCode: string, cou
           userId: id
         },
         data: {
-          coursesLastUpdated: new Date()
+          theoryCoursesLastUpdated: now
         }
       });
 
@@ -358,7 +362,7 @@ async function updatePracticalCourses(id: number, courses: {courseCode: string, 
           userId: id
         },
         data: {
-          coursesLastUpdated: new Date()
+          practicalCoursesLastUpdated: now
         }
       });
 
@@ -388,6 +392,7 @@ interface createWorkPlaceParams {
   collegePinCode: string,
   idCardImageFileName: string
 }
+
 async function updateWorkPlace(id: number, workPlaceParams: createWorkPlaceParams) {
   try{
     const workPlace = await db.collegeWorked.create({
@@ -406,6 +411,9 @@ async function updateWorkPlace(id: number, workPlaceParams: createWorkPlaceParam
             userId: id
           }
         }
+      },
+      include: {
+        tsUser: true
       }
     })
 
@@ -414,9 +422,122 @@ async function updateWorkPlace(id: number, workPlaceParams: createWorkPlaceParam
       collegeName: workPlace.collegeName,
       collegePlace: workPlace.collegePlace,
       collegePinCode: workPlace.collegePinCode,
+      idCardImageFileName: workPlace.idCardImageFileName,
     })
 
   }catch(e) {
+    return prismaErrorAsValue(e);
+  }
+}
+
+interface UpdatePersonalInfoParams {
+  aicteNo: string | null,
+  annaUnivNo: string |null,
+  yearOfExperience: number
+}
+
+export async function updatePersonalInformation(id: number, params: UpdatePersonalInfoParams) {
+  try{
+    await db.tsUser.update({
+      where: {
+        userId: id
+      },
+      data: {
+        aicteNo: params.aicteNo,
+        annaUnivNo: params.annaUnivNo,
+        yearOfExperience: params.yearOfExperience
+      }
+    });
+
+    return success({
+      aicteNo: params.aicteNo,
+      annaUnivNo: params.annaUnivNo,
+      yearOfExperience: params.yearOfExperience
+    })
+  }catch(e) {
+    return prismaErrorAsValue(e)
+  }
+}
+
+export async function updatePreferences(id: number, prefs: ExaminerRole[]) {
+
+  try{
+    await db.$transaction(async tr => {
+      await tr.preference.deleteMany({
+        where: {
+          userId: id
+        }
+      });
+
+      await tr.preference.createMany({
+        data: prefs.map( p=> {
+          return {
+            userId: id,
+            preferredFor: p,
+          }
+        })
+      })
+    });
+
+    return success(prefs); 
+  }catch(e) {
+    return prismaErrorAsValue(e);
+  }
+}
+
+export async function markIsVerified(id: number, verified: boolean) {
+  try{
+    await db.tsUser.update({
+      where: {
+        userId: id
+      },
+      data: {
+        userVerified: verified
+      }
+    });
+
+    return success(verified);
+  } catch(e) {
+    return prismaErrorAsValue(e);
+  }
+}
+
+export async function updateBlackListed(id: number, blacklisted: boolean) {
+  try{
+    await db.tsUser.update({
+      where: {
+        userId: id
+      },
+      data: {
+        userBlacklisted: blacklisted
+      }
+    });
+
+    return success(blacklisted);
+  } catch(e) {
+    return prismaErrorAsValue(e);
+  }
+}
+
+
+export async function getTsUsers() {
+  try{
+    const tsUsers = await db.tsUser.findMany({
+      include: {
+        practicalsHandled: true,
+        theoriesHandled: true,
+        coreDetails: true,
+        preferences: true,
+        collegesWorked: {
+          orderBy: {
+            recordedAt: 'desc',
+          },
+          take: 1
+        }
+      }
+    });
+    return success(tsUsers);
+  } catch(e) {
     return prismaErrorAsValue(e);
   }
 }
@@ -431,7 +552,7 @@ export {
   getTsUserUsingAnnaUnivNo,
   getTsUserUsingEmail,
   getTsUserUsingPhone,
-  updateTheroyCourses,
+  updateTheoryCourses,
   updatePracticalCourses,
   updateTsContact,
   updateWorkPlace,

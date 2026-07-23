@@ -4,7 +4,12 @@
   "controllerPathGlobs": ["src/**/*Controller.ts"],
   "spec": {
     "outputDirectory": "generated/tsoa/docs",
-    "specVersion": 3
+    "specVersion": 3,
+    "securityDefinitions": {
+      "type": "apikey",
+      "name": "refreshToken", 
+      "in": "cookie"
+    }
   },
   "routes": {
     "routesDir": "generated/tsoa/routes"

@@ -40,17 +40,19 @@ model NsUser {
 model TsUser {
   userId Int @unique @id 
   coreDetails User @relation(fields: [userId], references: [id]) 
-  aicteNo String @unique @db.Char(12)
-  annaUnivNo String @unique @db.Char(12) //change this after knowing about the structure of the anna univ number.
+  aicteNo String? @unique @db.Char(12) //extra 2 char
+  annaUnivNo String? @unique @db.Char(12) //extra 2 char
   department String @db.VarChar(60)
-  yearOfExperience Int
+  yearOfExperience Float
   internal Boolean
   email String @unique @db.VarChar(254)
   phone String @unique @db.VarChar(15)
   emailVerified Boolean @default(false)
   phoneVerified Boolean @default(false)
-  coursesLastUpdated DateTime? @db.Timestamptz(3)
+  theoryCoursesLastUpdated DateTime? @db.Timestamptz(3)
+  practicalCoursesLastUpdated DateTime? @db.Timestamptz(3)
   userVerified Boolean
+  userBlacklisted Boolean @default(false)
   hasUnVerifiedUpdate Boolean @default(false)
 
   preferences Preference[]

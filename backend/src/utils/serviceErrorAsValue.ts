@@ -16,6 +16,10 @@ export type ServiceError =
     message: string,
   }
   | {
+    cause: 'AuthenticationError',
+    message: string,
+  }
+  | {
     cause: 'NotFoundError',
     message: string,
   }

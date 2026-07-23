@@ -3,12 +3,15 @@ import { getPracticalCourses, getTheoryCourses } from "../dal/courseDal.js";
 import { success, error, Result } from "../utils/result.js";
 import { ServiceError } from "../utils/serviceErrorAsValue.js";
 import { getUserContext } from "../utils/userContext.js";
+import { abilitiesFor } from "./permissions.js";
 
 export async function getAllTheoryCourses(): Promise<Result<CourseDTO[], ServiceError>> {
 
   const context = getUserContext();
 
-  if(context === null) {
+  const abiliy = abilitiesFor(context);
+
+  if(abiliy.cannot('view', 'courseList')) {
     return error({
       cause: 'PermissionError',
       message: 'This resource is not accessible to public users'
@@ -37,7 +40,9 @@ export async function getAllPracticalCourses(): Promise<Result<CourseDTO[], Serv
 
   const context = getUserContext();
 
-  if(context === null) {
+  const abiliy = abilitiesFor(context);
+
+  if(abiliy.cannot('view', 'courseList')) {
     return error({
       cause: 'PermissionError',
       message: 'This resource is not accessible to public users'

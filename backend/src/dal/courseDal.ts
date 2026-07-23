@@ -54,7 +54,7 @@ export const availableCourses = [
   {
     courseCode: 'CE22801',
     courseTitle: 'civil lab',
-    type: 'theory',
+    type: 'practical',
   },
 
 ] as const satisfies {

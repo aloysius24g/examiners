@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "TsUser" ALTER COLUMN "yearOfExperience" SET DATA TYPE DECIMAL(65,30);

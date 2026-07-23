@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "TsUser" ALTER COLUMN "aicteNo" DROP NOT NULL,
+ALTER COLUMN "annaUnivNo" DROP NOT NULL;

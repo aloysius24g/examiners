@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ExaminerRole } from "../../generated/prisma/enums.js";
 
 //TODO
 //better error messages
@@ -6,6 +7,7 @@ import { z } from "zod";
 export const tsUserRegistrationSchema = z.object({
   name: z.string().min(1).max(50),
   email: z.email(),
+  otp: z.string().length(6, 'otp should be 6 digits.'),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
@@ -19,10 +21,14 @@ export const tsUserRegistrationSchema = z.object({
   salutation: z.enum(["Mr", "Mrs", "Ms", "Dr", "Prof"]),
   phone: z.string().regex(/^[0-9]{10}$/, "phone must be 10 characters and only numerical"),
   aicteNo: z.string()
-  .regex(/^\d+$/, "aicte number must contain only numbers")
-  .length(10, "aicte number must be 10 character long"),
-  annaUnivNo: z.string().min(10, 'Anna university number should be atleast 10 char long'),
-  yearOfExperience: z.number().int().min(0, 'year of experience should be greater than or equal to 0'),
+    .regex(/^\d+$/, "aicte number must contain only numbers")
+    .length(10, "aicte number must be 10 character long")
+    .nullable(),
+  annaUnivNo: z.string().min(10, 'Anna university number should be atleast 10 char long')
+    .nullable(),
+  yearOfExperience: z.number()
+    .min(0, 'year of experience should be greater than or equal to 0')
+    .max(40, 'year of experience is invalid'),
   collegeName: z.string().min(1).max(200),
   collegePlace: z.string().min(1).max(30),
   collegePinCode: z.string().regex(/^[0-9]{6}$/, "pincode should be 6 character long and must be numerical"),
@@ -45,3 +51,37 @@ export const tsUserRegistrationSchema = z.object({
     "Professor"
   ]),
 });
+
+export const contactSchema = tsUserRegistrationSchema.pick({
+  email: true,
+  phone: true
+});
+
+export const contactInputSchema = tsUserRegistrationSchema.pick({
+  email: true,
+  phone: true,
+  otp: true
+});
+
+export const workplaceSchema = tsUserRegistrationSchema.pick({
+  designation: true,
+  collegeName: true,
+  collegePlace: true,
+  collegePinCode: true,
+  idCardImageFileName: true,
+});
+
+export const updatablePersonalInfoSchema = tsUserRegistrationSchema.pick({
+  aicteNo: true,
+  annaUnivNo: true,
+  yearOfExperience: true,
+});
+
+export const preferrenceSchema = z.enum([
+  'reviewer',
+  'questionSetter',
+  'questionScrutinizer',
+  'hallSuperintendent'
+]);
+
+export const preferencesSchema = z.array(preferrenceSchema);

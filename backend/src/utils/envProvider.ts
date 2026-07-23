@@ -15,7 +15,11 @@ const envSchema =  z.object({
   //JWT_ACCESS_TOKEN_SEC: z.string().length(44),
   JWT_REFRESH_TOKEN_SEC: z.string().length(44),
   DATABASE_URL: z.string(),
-  DOTENV_CONFIG_QUIET: z.enum(['true', 'false']).transform(v => v === 'true')
+  DOTENV_CONFIG_QUIET: z.enum(['true', 'false']).transform(v => v === 'true'),
+  GOOGLE_OAUTH_REFRESH_TOKEN: z.string(),
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
+  GOOGLE_REDIRECT_URI: z.string()
 });
 
 

@@ -1,4 +1,5 @@
 import express, { NextFunction, Request, Response } from "express";
+import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import swaggerUi from "swagger-ui-express";
@@ -13,10 +14,26 @@ import envProvider from "./utils/envProvider.js";
 import { createIdCardImage } from "./dal/idCardImageDal.js";
 import { userAls } from "./utils/userContext.js";
 import { contextSchema } from "./validators/contextValidators.js";
+import { fileURLToPath } from "node:url";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+
+
+//testing
+import * as otpDal from './dal/otpDal.js';
+
+const corsOptions = {
+  origin: [
+    'http://localhost:5173'
+  ],
+  credentials: true,
+}
+
+otpDal.setOtpByEmail('sam2@sample.com', '999999')
 
 const diskStorage = multer({
   limits: {
-    fileSize: 50 * 1024 * 1024
+    fileSize: 100 * 1024 * 1024
   },
   fileFilter: (req, file, cb) => {
     if(! ['image/png', 'image/jpeg'].includes(file.mimetype)) {
@@ -37,15 +54,38 @@ const diskStorage = multer({
   }),
 });
 
+const rateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 50,
+  message: "Too many request, please try again later."
+})
+
+const imgAndOtpRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 10,
+  message: "Too many request, please try again later."
+})
+
 const app = express();
 
+app.use(helmet({
+  crossOriginResourcePolicy: {
+    policy: "cross-origin",
+  },
+}))
+app.use(cors(corsOptions))
 app.use(express.json());
 app.use(cookieParser())
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const refreshToken = req.cookies.refreshToken;
+// rate limiting
+app.use('/verification/email', imgAndOtpRateLimiter);
+app.use(rateLimiter);
 
-  // carefull here always return in gaurds.
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  const refreshToken = req.cookies.refreshToken;
+  console.log(req.body)
+
+  // carefull here, always return in gaurds.
 
   // if no refresh token continue with null context
   if(! refreshToken) {
@@ -71,7 +111,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 
-app.post('/id-card-image', diskStorage.single('file'), async (req, res)=> {
+app.post('/id-card-image', imgAndOtpRateLimiter,diskStorage.single('file'), async (req, res)=> {
   const fileName = req.file?.filename;
   if(fileName === undefined) {
     throw new ValidationError('Image not Uploaded.');
@@ -97,11 +137,19 @@ app.post('/id-card-image', diskStorage.single('file'), async (req, res)=> {
   });
 })
 
+app.get('/id-card-image/:fileName', (req, res) => {
+  const f = fileURLToPath(import.meta.url);
+  const p = path.dirname(f);
+  
+  return res.sendFile(path.join(p, '..', 'id-card-images', req.params.fileName));
+})
+
 RegisterRoutes(app);
 
 app.use((err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
   // TODO
   // implement a logger here and monitor logs to find any bugs.
+  console.log(err)
   if(err instanceof HttpError) {
     return res.status(err.statusCode).json({
       message: err.message

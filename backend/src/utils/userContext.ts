@@ -1,13 +1,9 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import { TsUserMinimalDTO } from "../controllers/tsUserController.js";
+import z from "zod";
+import { contextSchema } from "../validators/contextValidators.js";
 
-type userContext = {
-  salutation: string,
-  name: string,
-  id: number,
-  accountType: string
-}
-export const userAls = new AsyncLocalStorage<userContext | null>()
+export type UserContext = z.infer<typeof contextSchema>
+export const userAls = new AsyncLocalStorage<UserContext | null>()
 export function getUserContext(){
   const c = userAls.getStore();
   if(c === undefined) {
