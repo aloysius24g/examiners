@@ -2,12 +2,13 @@ import z from "zod";
 
 export const nsUserRegistrationSchema = z.object({
   userName: z.string().
+    trim().
     min(4, 'Username should be atleast 4 character').
     max(20, 'Username should not exceed 20 character').
     regex(/^[a-zA-Z0-9]+$/, {
       message: 'username must only contain alphabets and numbers'
     }),
-  name: z.string().min(1).max(50),
+  name: z.string().trim().min(1).max(50),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")

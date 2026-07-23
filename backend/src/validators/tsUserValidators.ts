@@ -1,12 +1,11 @@
 import { z } from "zod";
-import { ExaminerRole } from "../../generated/prisma/enums.js";
 
 //TODO
 //better error messages
 
 export const tsUserRegistrationSchema = z.object({
-  name: z.string().min(1).max(50),
-  email: z.email(),
+  name: z.string().trim().min(1).max(50),
+  email: z.email().trim(),
   otp: z.string().length(6, 'otp should be 6 digits.'),
   password: z
     .string()
@@ -19,19 +18,23 @@ export const tsUserRegistrationSchema = z.object({
       "Password must contain at least one special character"
     ),
   salutation: z.enum(["Mr", "Mrs", "Ms", "Dr", "Prof"]),
-  phone: z.string().regex(/^[0-9]{10}$/, "phone must be 10 characters and only numerical"),
+  phone: z.string().trim().regex(/^[0-9]{10}$/, "phone must be 10 characters and only numerical"),
   aicteNo: z.string()
-    .regex(/^\d+$/, "aicte number must contain only numbers")
-    .length(10, "aicte number must be 10 character long")
+    .trim()
+    .regex(/^\d+$/, "AICTE number must contain only numbers")
+    .length(10, "AICTE number must be 10 character long")
     .nullable(),
-  annaUnivNo: z.string().min(10, 'Anna university number should be atleast 10 char long')
+  annaUnivNo: z.string()
+    .trim()
+    .regex(/^\d+$/, "Anna university number must contain only numbers")
+    .min(10, 'Anna university number should be atleast 10 char long')
     .nullable(),
   yearOfExperience: z.number()
     .min(0, 'year of experience should be greater than or equal to 0')
     .max(40, 'year of experience is invalid'),
-  collegeName: z.string().min(1).max(200),
-  collegePlace: z.string().min(1).max(30),
-  collegePinCode: z.string().regex(/^[0-9]{6}$/, "pincode should be 6 character long and must be numerical"),
+  collegeName: z.string().trim().min(1).max(200),
+  collegePlace: z.string().trim().min(1).max(30),
+  collegePinCode: z.string().trim().regex(/^[0-9]{6}$/, "pincode should be 6 character long and must be numerical"),
   idCardImageFileName: z.string().min(1).max(200), // questionable max length, i dont have db limit but still i thik 200 is ok.
   department: z.enum([
     "Artificial Intelligence and Data Science",

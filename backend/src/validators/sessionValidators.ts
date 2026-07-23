@@ -2,13 +2,13 @@ import z from "zod";
 
 const NSCredentialsSchema = z.object({
   accountType: z.literal('NS'),
-  userName: z.string(),
+  userName: z.string().trim(),
   password: z.string()
 })
 
 const TSCredentialsSchema = z.object({
   accountType: z.literal('TS'),
-  email: z.string(),
+  email: z.string().trim(),
   password: z.string()
 })
 
