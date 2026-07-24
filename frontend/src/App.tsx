@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoggedInLayout from "@/pages/LoggedInLayout";
 import LoginLayout from "./pages/LoginLayout";
 import RegisterExaminer from "./pages/RegisterExaminer";
@@ -54,6 +54,9 @@ export default function App() {
           </Route>
           <Route path=":id" element={<Examiner />}>
           </Route>
+        </Route>
+
+        <Route path="*" element={<Navigate to='/login/examiner' replace />}>
         </Route>
 
       </Routes>
