@@ -35,7 +35,9 @@ export default function LoginLayout() {
             )}
             </Button>
             {userContext.data?.id &&
-              <Button onClick={() => navigate(`/examiners/${userContext.data?.id}`)}>
+              <Button onClick={
+                () => navigate(`/examiners/${userContext.data?.accountType === 'NS' ? '' : userContext.data?.id}`)
+              }>
                 Profile
               </Button>
             }
