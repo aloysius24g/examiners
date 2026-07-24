@@ -284,27 +284,8 @@ export async function getTsUsers():
   // courses.
   const tsUsersFormatted: TsUserListDTO | undefined = tsUsersRaw.map(raw => {
 
-    const practicalLatestUpdateTime  = raw.practicalsHandled.
-      reduce<typeof tsUsersRaw[number]['practicalsHandled'][number] | undefined>(
-      (max, current) => {
-        if(max === undefined) {
-          return current;
-        }
-        return current.chosenTime.getTime() > max.chosenTime.getTime() ? current : max 
-      },
-      undefined
-    ) 
-
-    const theoryLatestUpdateTime  = raw.theoriesHandled.
-      reduce<typeof tsUsersRaw[number]['theoriesHandled'][number] | undefined>(
-      (max, current) => {
-        if(max === undefined) {
-          return current;
-        }
-        return current.chosenTime.getTime() > max.chosenTime.getTime() ? current : max 
-      },
-      undefined
-    ) 
+    const practicalLatestUpdateTime = raw.practicalCoursesLastUpdated;
+    const theoryLatestUpdateTime = raw.theoryCoursesLastUpdated;
 
     return {
       id: raw.userId,
@@ -330,10 +311,10 @@ export async function getTsUsers():
       },
         // latest by chosenTime
       practicalHandled: raw.practicalsHandled.
-        filter(p => p.chosenTime === practicalLatestUpdateTime?.chosenTime).
+        filter(p => p.chosenTime.getTime() === practicalLatestUpdateTime?.getTime()).
         map(p => ({courseTitle: p.courseTitle, courseCode: p.courseCode})),
-      theoryHandled: raw.practicalsHandled.
-        filter(p => p.chosenTime === theoryLatestUpdateTime?.chosenTime).
+      theoryHandled: raw.theoriesHandled.
+        filter(p => p.chosenTime.getTime() === theoryLatestUpdateTime?.getTime()).
         map(p => ({courseTitle: p.courseTitle, courseCode: p.courseCode})),
       
       // internal fields
