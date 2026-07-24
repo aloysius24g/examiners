@@ -64,7 +64,7 @@ export function ExaminerLoginPage() {
         <CardContent>
           <form onSubmit={fs.handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">Registtered Email</Label>
+              <Label htmlFor="email">Registered Email</Label>
 
               <Input
                 id="email"
@@ -103,6 +103,15 @@ export function ExaminerLoginPage() {
                 className='text-center hover:text-blue-400 font-bold underline cursor-pointer'
               >
                 Register
+              </NavLink>
+            </div>
+            <div className="flex justify-center gap-2">
+              Forgot Password ?
+              <NavLink
+                to={'/password-reset/examiner'}
+                className='text-center hover:text-blue-400 font-bold underline cursor-pointer'
+              >
+                Reset Password
               </NavLink>
             </div>
           </form>

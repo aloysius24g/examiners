@@ -1,4 +1,4 @@
-import { ExaminerRole } from '../../generated/prisma/enums.js';
+import { AccountType, ExaminerRole } from '../../generated/prisma/enums.js';
 import db from '../utils/database.js';
 import prismaErrorAsValue from '../utils/prismaErrorAsValue.js';
 import { success } from '../utils/result.js';
@@ -514,6 +514,30 @@ export async function updateBlackListed(id: number, blacklisted: boolean) {
     });
 
     return success(blacklisted);
+  } catch(e) {
+    return prismaErrorAsValue(e);
+  }
+}
+
+export async function updatePassHash(email: string, newPassHash: string) {
+  try{
+    await db.tsUser.update({
+      where: {
+        email: email,
+        coreDetails: {
+          accountType: 'TS'
+        }
+      },
+      data: {
+        coreDetails: {
+          update: {
+            passHash: newPassHash
+          }
+        }
+      }
+    });
+
+    return success(undefined);
   } catch(e) {
     return prismaErrorAsValue(e);
   }

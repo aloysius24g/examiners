@@ -66,8 +66,8 @@ model TsUser {
 enum ExaminerRole{
   questionScrutinizer
   questionSetter
-  hallSuperintendent
-  reviewer
+  examinerPractical
+  examinerValuation
 }
 
 model Preference {

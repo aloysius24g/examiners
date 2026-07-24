@@ -55,6 +55,7 @@ export const tsUserRegistrationSchema = z.object({
   ]),
 });
 
+//does this even used or duplicated?
 export const contactSchema = tsUserRegistrationSchema.pick({
   email: true,
   phone: true
@@ -80,11 +81,18 @@ export const updatablePersonalInfoSchema = tsUserRegistrationSchema.pick({
   yearOfExperience: true,
 });
 
+export const resetPasswordSchema = tsUserRegistrationSchema.pick({
+  email: true,
+  otp: true,
+}).extend({
+  newPassword: tsUserRegistrationSchema.shape.password
+});
+
 export const preferrenceSchema = z.enum([
-  'reviewer',
   'questionSetter',
   'questionScrutinizer',
-  'hallSuperintendent'
+  'examinerPractical',
+  'examinerValuation'
 ]);
 
 export const preferencesSchema = z.array(preferrenceSchema);

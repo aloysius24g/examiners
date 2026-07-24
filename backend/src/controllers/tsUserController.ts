@@ -84,6 +84,11 @@ export type UpdatablePersonalInfoDTO = {
   yearOfExperience: number
 }
 
+export type PasswordResetDTO = {
+  email: string,
+  newPassword: string,
+  otp: string
+}
 
 export type TsUserQuery = {
   filterField: 
@@ -409,5 +414,31 @@ export class TsUserController extends Controller {
     }
 
     return updateResponse.value;
+  }
+
+  @Put('/passwords') // kind of violated rest standard's basics here. but ok works fine.
+  public async updatePassword(
+    @Body() body: PasswordResetDTO,
+  ): Promise<void> {
+
+    const updateResponse = await tsUserService.updatePassword(body);
+
+    if (!updateResponse.success) {
+      switch (updateResponse.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(updateResponse.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(updateResponse.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(updateResponse.error.message);
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(updateResponse.error.message);
+      }
+    }
+
+    return undefined;
   }
 }

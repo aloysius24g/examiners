@@ -27,8 +27,8 @@ import { Switch } from "@/components/ui/switch";
 const prefOptions = [
   {label: 'Setter', value:'questionSetter'},
   {label: 'Scrutinizer', value:'questionScrutinizer'},
-  {label: 'Hall Superintendent', value:'hallSuperintendent'},
-  {label: 'reviewer', value:'reviewer'},
+  {label: 'Examiner Practical', value:'examinerPractical'},
+  {label: 'Examiner Valuation', value:'examinerValuation'},
 ]
 
 export default function Examiner() {

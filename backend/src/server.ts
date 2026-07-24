@@ -19,17 +19,12 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
 
-//testing
-import * as otpDal from './dal/otpDal.js';
-
 const corsOptions = {
   origin: [
     'http://localhost:5173'
   ],
   credentials: true,
 }
-
-otpDal.setOtpByEmail('sam2@sample.com', '999999')
 
 const diskStorage = multer({
   limits: {

@@ -12,6 +12,7 @@ import RegisterOfficer from "./pages/RegisterOfficer";
 import ExaminersList from "./pages/ExaminersList";
 import { queryClient } from "./lib/queryClient";
 import { UserContextProvider } from "./components/user-context";
+import { ExaminerPasswordReset } from "./pages/ExaminerPasswordReset";
 
 export default function App() {
   return (
@@ -34,6 +35,11 @@ export default function App() {
 
         <Route path="/register/officer" element={<LoggedInLayout />}>
           <Route index element={<RegisterOfficer />} />
+        </Route>
+
+        <Route path="/password-reset" element={<LoginLayout />} >
+          <Route path="examiner" element={<ExaminerPasswordReset />}>
+          </Route>
         </Route>
 
         <Route path="/login" element={<LoginLayout />} >

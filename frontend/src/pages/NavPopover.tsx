@@ -17,6 +17,10 @@ export function NavPopover() {
       to: `/examiners/${userContext.data.id}/`,
       label: 'Profile'
     });
+    links.push({
+      to: `/password-reset/examiner`,
+      label: 'Reset Password'
+    });
   }
   if(userContext?.data?.accountType === 'NS') {
     links.push({

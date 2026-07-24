@@ -1,4 +1,4 @@
-import { ContactDTO, ContactDTOWithOTP, TsUserDetailedDTO, TsUserListDTO, TsUserMinimalDTO, TsUserRegistrationDTO, UpdatablePersonalInfoDTO, WorkPlaceDTO } from "../controllers/tsUserController.js";
+import { ContactDTO, ContactDTOWithOTP, PasswordResetDTO, TsUserDetailedDTO, TsUserListDTO, TsUserMinimalDTO, TsUserRegistrationDTO, UpdatablePersonalInfoDTO, WorkPlaceDTO } from "../controllers/tsUserController.js";
 import * as otpService from '../services/otpService.js';
 import { isExistNotUsedIdCardImage } from "../dal/idCardImageDal.js"
 import * as tsUserDal from "../dal/tsUserDal.js";
@@ -6,7 +6,7 @@ import * as courseDal from '../dal/courseDal.js';
 import { error, Result, success } from "../utils/result.js";
 import { ServiceError } from "../utils/serviceErrorAsValue.js";
 import { getUserContext } from "../utils/userContext.js";
-import { contactInputSchema, preferencesSchema, tsUserRegistrationSchema, updatablePersonalInfoSchema, workplaceSchema } from "../validators/tsUserValidators.js";
+import { contactInputSchema, preferencesSchema, resetPasswordSchema, tsUserRegistrationSchema, updatablePersonalInfoSchema, workplaceSchema } from "../validators/tsUserValidators.js";
 import bcrypt from "bcrypt";
 import { abilitiesFor } from "./permissions.js";
 import { CourseDTO } from "../controllers/courseController.js";
@@ -96,6 +96,12 @@ export async function registerTsUser(params: TsUserRegistrationDTO): Promise<Res
   }
 
   await otpService.invalidateOtp(safeParams.data.email);
+  // TODO
+  // at this point user is created
+  // should we use transactions and rollback if this fails.
+  // ideally it is the right thing to do. but this is okay.
+  // should we check if this fails or not
+  // In this file this line is used in similar way many times, check that out too. 
 
   return success({
     id: userCreationResponse.value.id,
@@ -679,6 +685,61 @@ export async function updateIsBlacklisted(id: number, blacklisted: boolean):
   }
 
   return success(updateRes.value); 
+}
+
+export async function updatePassword(params: PasswordResetDTO):
+  Promise<Result<void, ServiceError>> {
+
+  const safeParams = resetPasswordSchema.safeParse(params);
+  if(! safeParams.success) {
+    return error({
+      cause: 'ValidationError',
+      message: safeParams.error.issues.map(i => i.message).join('\n')
+    })
+  }
+
+  //const userContext = getUserContext();
+  //const ability = abilitiesFor(userContext);
+  //NOTE : this is not a protected service entity, skippin the requesting user's permission.
+  
+  
+  // check if the provided email has otp.
+  const otpVerificationRes = await otpService.verifyOtp(safeParams.data.email, safeParams.data.otp);
+  if(! otpVerificationRes.success) {
+    return otpVerificationRes; // here i am using a servie call withing this service.
+    //just return the returned value if fails.
+  }
+
+  const newPassHash = await bcrypt.hash(safeParams.data.newPassword, 9);
+
+  const updateRes = await tsUserDal.updatePassHash(safeParams.data.email, newPassHash);
+  if(! updateRes.success) {
+    switch(updateRes.error.cause) {
+      case "ValidationError":
+      case "KnownRequestError":
+        return error({
+          cause: 'ValidationError',
+          message: updateRes.error.message
+        });
+      case "RecordNotFound":
+        return error({
+          cause: 'NotFoundError',
+          message: updateRes.error.message
+        });
+      case "DuplicateRecord":
+      case "ForeignKeyViolation":
+      case "UnknownRequestError":
+      case "DbUnAvailableError":
+        return error({
+          cause: 'DbError',
+          message: updateRes.error.message
+        });
+    }
+  }
+
+  await otpService.invalidateOtp(safeParams.data.email);
+
+  return success(undefined); 
 }
 
 export async function updatePreferences(id: number, preferences: string[]):
