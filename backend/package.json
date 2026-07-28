@@ -9,7 +9,8 @@
   "scripts": {
     "genRoute": "tsoa routes && tsoa spec",
     "dev": "tsx watch src/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
   },
   "dependencies": {
     "@casl/ability": "^7.0.0",

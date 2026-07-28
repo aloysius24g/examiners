@@ -1,9 +1,10 @@
 import axios from "axios";
 
+const apiUrl = import.meta.env.VITE_API_URL;
 const apiClient = axios.create({
   //ATTENTION
   //also change the urls in hardcoded areas(in registerExaminer)
-  baseURL: "http://localhost:3000",
+  baseURL: apiUrl,
   headers: {
     "Content-Type": "application/json",
   },

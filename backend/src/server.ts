@@ -51,7 +51,7 @@ const diskStorage = multer({
 
 const rateLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
-  limit: 50,
+  limit: 70,
   message: "Too many request, please try again later."
 })
 
@@ -78,7 +78,6 @@ app.use(rateLimiter);
 
 app.use((req: Request, _res: Response, next: NextFunction) => {
   const refreshToken = req.cookies.refreshToken;
-  console.log(req.body)
 
   // carefull here, always return in gaurds.
 
@@ -106,7 +105,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 });
 
 
-app.post('/id-card-image', imgAndOtpRateLimiter,diskStorage.single('file'), async (req, res)=> {
+app.post('/id-card-image', imgAndOtpRateLimiter, diskStorage.single('file'), async (req, res)=> {
   const fileName = req.file?.filename;
   if(fileName === undefined) {
     throw new ValidationError('Image not Uploaded.');
@@ -144,7 +143,7 @@ RegisterRoutes(app);
 app.use((err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
   // TODO
   // implement a logger here and monitor logs to find any bugs.
-  console.log(err)
+  //console.log(err)
   if(err instanceof HttpError) {
     return res.status(err.statusCode).json({
       message: err.message

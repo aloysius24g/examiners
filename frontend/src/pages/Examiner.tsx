@@ -261,7 +261,7 @@ export default function Examiner() {
         <dt className="text-sm text-muted-foreground">Id Card Image</dt>
         {/*ATTENTION*/}
         <img 
-          src={`http://localhost:3000/id-card-image/${query.data.workPlace.idCardImageFileName}`}
+          src={`${import.meta.env.VITE_API_URL}/id-card-image/${query.data.workPlace.idCardImageFileName}`}
           width={300}
         />
       </dl>
@@ -393,7 +393,7 @@ function CollegeInfoEditor() {
 
       const formData = new FormData();
       formData.append('file', v.idCardImage);
-      const res = await fetch('http://localhost:3000/id-card-image', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/id-card-image`, {
         method: 'POST',
         body: formData
       })

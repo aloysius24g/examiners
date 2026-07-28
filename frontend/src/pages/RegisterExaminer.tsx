@@ -74,7 +74,7 @@ export default function RegisterExaminer() {
 
       const formData = new FormData();
       formData.append('file', v.idCardImage);
-      const res = await fetch('http://localhost:3000/id-card-image', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/id-card-image`, {
         method: 'POST',
         body: formData
       })

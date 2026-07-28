@@ -2,6 +2,12 @@ node_modules
 # Keep environment variables out of version control
 .env
 
+init.sql
+seed.sql
+
 /generated/prisma
 /generated/tsoa
 /id-card-images
+
+/build
+/dist

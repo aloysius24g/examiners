@@ -12,6 +12,7 @@
     }
   },
   "routes": {
+    "esm": true,
     "routesDir": "generated/tsoa/routes"
   }
 }
