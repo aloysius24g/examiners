@@ -162,9 +162,15 @@ app.use((err: unknown, req: express.Request, res: express.Response, next: expres
   })
 })
 
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+if(process.env.NODE_ENV === 'development') {
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+}
 
 app.listen(3000, () => {
+
   console.log("Server running on http://localhost:3000");
-  console.log("Swagger UI at http://localhost:3000/docs");
+
+  if(process.env.NODE_ENV === 'development') {
+    console.log("Swagger UI at http://localhost:3000/docs");
+  }
 });
