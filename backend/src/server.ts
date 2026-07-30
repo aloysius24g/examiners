@@ -139,10 +139,7 @@ app.post('/id-card-image', imgAndOtpRateLimiter, diskStorage.single('file'), asy
 })
 
 app.get('/id-card-image/:fileName', (req, res) => {
-  const f = fileURLToPath(import.meta.url);
-  const p = path.dirname(f);
-  
-  return res.sendFile(path.join(p, '..', 'id-card-images', req.params.fileName));
+  return res.sendFile(path.join('id-card-images', req.params.fileName));
 })
 
 RegisterRoutes(app);
