@@ -17,7 +17,8 @@ import apiClient from "@/lib/axiosClient";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useUserContext } from '../components/user-context';
 
-import type { CredentialDTO, SessionDTO } from '../../../backend/src/controllers/sessionController';
+import type { CredentialDTO } from '../../../backend/src/controllers/sessionController';
+import type { UserContext } from "../../../backend/src/utils/userContext";
 
 export function ExaminerLoginPage() {
 
@@ -27,7 +28,7 @@ export function ExaminerLoginPage() {
 
   const mut = useMutation({
     mutationFn: async (v: CredentialDTO) => {
-      const res = await apiClient.post<SessionDTO>('/session', v);
+      const res = await apiClient.post<UserContext>('/session', v);
       return res.data;
     }
   });
@@ -128,7 +129,7 @@ export function OfficerLoginPage() {
   
   const mut = useMutation({
     mutationFn: async (v: CredentialDTO) => {
-      const res = await apiClient.post<SessionDTO>('/session', v);
+      const res = await apiClient.post<UserContext>('/session', v);
       return res.data;
     }
   });
