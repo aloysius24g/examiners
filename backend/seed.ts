@@ -53,6 +53,8 @@ async function createAdminUser() {
       }
     }
   }); 
+
+  console.log('admin user created with password successfully.');
 }
 
 
