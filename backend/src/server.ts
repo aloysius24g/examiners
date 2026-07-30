@@ -26,6 +26,10 @@ const corsOptions = {
   credentials: true,
 }
 
+if(process.env.FRONT_HOST) {
+  corsOptions.origin = [process.env.FRONT_HOST]
+}
+
 const diskStorage = multer({
   limits: {
     fileSize: 100 * 1024 * 1024
