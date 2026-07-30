@@ -26,7 +26,6 @@ export default function App() {
     <ReactQueryDevtools />
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LoggedInLayout />} />
 
         <Route path="/register" element={<LoginLayout />} >
           <Route path="examiner" element={<RegisterExaminer />}>
