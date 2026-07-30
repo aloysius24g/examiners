@@ -25,7 +25,7 @@ async function createAdminUser() {
     }
   });
 
-  if(adminUser === null) {
+  if(adminUser !== null) {
     console.error('admin user found aborting');
     return;
   }
