@@ -63,6 +63,9 @@ const imgAndOtpRateLimiter = rateLimit({
 
 const app = express();
 
+// proxy settings to make rate limiter work correctly
+app.set('trust proxy', true);
+
 app.use(helmet({
   crossOriginResourcePolicy: {
     policy: "cross-origin",
