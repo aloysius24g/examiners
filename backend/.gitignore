@@ -9,5 +9,7 @@ seed.sql
 /generated/tsoa
 /id-card-images
 
+courses-available.xlsx
+
 /build
 /dist
