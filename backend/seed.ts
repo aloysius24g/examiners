@@ -46,9 +46,9 @@ async function createAdminUser() {
       salutation: 'Mr',
       passHash: passHash,
       nsDetails: {
-        connect: {
-          userId: 1000,
-          userName: 'admin'
+        create: {
+          userName: 'admin',
+          roleName: 'coe'
         }
       }
     }
