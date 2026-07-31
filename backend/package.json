@@ -8,7 +8,7 @@
   "main": "index.js",
   "scripts": {
     "genRoute": "tsoa routes && tsoa spec",
-    "dev": "NODE_ENV=development tsx watch src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
   },
