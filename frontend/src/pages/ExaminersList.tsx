@@ -54,7 +54,7 @@ export default function ExaminersList() {
     if(! examinerListQuery.data) {
       return [];
     }
-    return examinerListQuery.data.filter(examiner => {
+    const filtered =  examinerListQuery.data.filter(examiner => {
       // just if guard conditions and return false if any fail.
 
       // name filtering
@@ -91,6 +91,10 @@ export default function ExaminersList() {
 
       return true;
     });
+
+    const sorted = filtered.sort((e1, e2) => e2.id - e1.id)
+
+    return sorted;
 
   }, [examinerListQuery.data, fs.values]);
 
@@ -176,7 +180,7 @@ export default function ExaminersList() {
 
               <div>
               <NavLink
-                target="_blank"
+                //target="_blank"
                 key={examiner.id}
                 to={`/examiners/${examiner.id}`}
                 className="block px-3 py-2 rounded-md text-sm"
