@@ -800,7 +800,8 @@ function TheoryCoursesEditor() {
     </DialogHeader>
     <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
       <MultiSelect
-        modalPopover= {true} // to make the list scroll. Important
+        hideSelectAll={true}
+        modalPopover={true} // to make the list scroll. Important
         className="border-border"
         maxCount={6}
         options={courseValuesForMulti}
