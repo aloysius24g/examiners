@@ -14,7 +14,6 @@ import envProvider from "./utils/envProvider.js";
 import { createIdCardImage } from "./dal/idCardImageDal.js";
 import { userAls } from "./utils/userContext.js";
 import { contextSchema } from "./validators/contextValidators.js";
-import { fileURLToPath } from "node:url";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
