@@ -43,7 +43,7 @@ const schema = yup.object({
       .trim()
       .label('AICTE number')
       .matches(/^\d+$/, 'AICTE number must contain only numbers.')
-      .length(10, 'AICTE number must have 10 digits.')
+      .length(9, 'AICTE number must have 10 digits.')
       .nullable()
       .transform(v => v==='' ? null : v)
       .default(null),
@@ -108,7 +108,12 @@ const schema = yup.object({
         "Electronics and Communication Engineering",                                                     
         "Information Technology",                                                                        
         "Management Studies",                                                                            
-        "Computer Applications"
+        "Computer Applications",
+        "Maths",
+        "Physics",
+        "Chemistry",
+        "English",
+        "Tamil"
       ])
       .required(),
     designation: yup

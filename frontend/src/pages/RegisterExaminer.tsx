@@ -160,14 +160,19 @@ export default function RegisterExaminer() {
                   <SelectContent>
                     <SelectItem value="Artificial Intelligence and Data Science">Artificial Intelligence and Data Science</SelectItem>
                     <SelectItem value="Civil Engineering">Civil Engineering</SelectItem>
-                    <SelectItem value="Mechanical Engineering">Mechanical Engineering</SelectItem>
                     <SelectItem value="Computer Science and Engineering">Computer Science and Engineering</SelectItem>
                     <SelectItem value="Computer Science and Engineering (Cyber Security)">Computer Science and Engineering (Cyber Security)</SelectItem>
                     <SelectItem value="Electrical and Electronics Engineering">Electrical and Electronics Engineering</SelectItem>
                     <SelectItem value="Electronics and Communication Engineering">Electronics and Communication Engineering</SelectItem>
                     <SelectItem value="Information Technology">Information Technology</SelectItem>
+                    <SelectItem value="Mechanical Engineering">Mechanical Engineering</SelectItem>
                     <SelectItem value="Management Studies">Management Studies</SelectItem>
                     <SelectItem value="Computer Applications">Computer Applications</SelectItem>
+                    <SelectItem value="Maths">Maths</SelectItem>
+                    <SelectItem value="Physics">Physics</SelectItem>
+                    <SelectItem value="Chemistry">Chemistry</SelectItem>
+                    <SelectItem value="English">English</SelectItem>
+                    <SelectItem value="Tamil">Tamil</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormikErrorField name='department' formikState={fs} />

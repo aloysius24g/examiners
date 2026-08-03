@@ -22,7 +22,7 @@ export const tsUserRegistrationSchema = z.object({
   aicteNo: z.string()
     .trim()
     .regex(/^\d+$/, "AICTE number must contain only numbers")
-    .length(10, "AICTE number must be 10 character long")
+    .length(9, "AICTE number must be 10 character long")
     .nullable(),
   annaUnivNo: z.string()
     .trim()
@@ -46,7 +46,12 @@ export const tsUserRegistrationSchema = z.object({
     "Electronics and Communication Engineering",
     "Information Technology",
     "Management Studies",
-    "Computer Applications"
+    "Computer Applications",
+    "Maths",
+    "Physics",
+    "Chemistry",
+    "English",
+    "Tamil"
   ]),
   designation: z.enum([
     "Assistant Professor",
