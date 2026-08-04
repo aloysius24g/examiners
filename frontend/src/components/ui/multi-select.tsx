@@ -1014,7 +1014,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 						}}
 						align="start"
 						onEscapeKeyDown={() => setIsPopoverOpen(false)}>
-						<Command>
+						<Command shouldFilter={false}>
 							{searchable && (
 								<CommandInput
 									placeholder="Search options..."
