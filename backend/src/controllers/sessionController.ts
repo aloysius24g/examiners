@@ -1,6 +1,7 @@
 import { Body, Controller, Post, Request, Route } from "tsoa";
 import { login } from "../services/sessionService.js";
 import { ConflictError, InternalServerError, UnauthorizedError, ValidationError } from "../utils/httpErrors.js";
+import ENV from "../utils/envProvider.js";
 
 export type CredentialDTO = {
     accountType: 'TS' | 'NS',
@@ -43,7 +44,7 @@ export class SessionController extends Controller {
 
     req.res.cookie('refreshToken', loginResponse.value.token, {
       httpOnly: true,
-      secure: false,
+      secure: ENV.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 30 * 60 * 1000
     })
