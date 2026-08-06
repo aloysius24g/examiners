@@ -68,9 +68,11 @@ export default function LoggedInLayout() {
           )}
         </Button>
         <Popover>
-          <PopoverTrigger className="flex gap-2 border px-2 py-1 rounded-(--radius)">
+          <PopoverTrigger className={`flex ${isMobile ? 'gap-1' : 'gap-2'} border px-2 py-1 rounded-(--radius)`}>
             <User size={20} />
-            <span>{userContext.data?.name}</span>
+            { ! isMobile && 
+              <span>{userContext.data?.name}</span>
+            }
           </PopoverTrigger>
           <PopoverContent className="flex flex-col">
             <span className="text-center">

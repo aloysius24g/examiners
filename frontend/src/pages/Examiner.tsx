@@ -215,7 +215,7 @@ export default function Examiner() {
       </div>
       <dl className="grid grid-cols-[140px_1fr] gap-x-4 gap-y-3 px-8 border p-4 rounded-(--radius)">
         <dt className="text-sm text-muted-foreground">Name</dt>
-        <dd className="font-medium">{query.data.bio.name}</dd>
+        <dd className="wrap-anywhere font-medium">{query.data.bio.name}</dd>
 
         <dt className="text-sm text-muted-foreground">AICTE Number</dt>
         <dd>{query.data?.bio.aicteNo ?? 'Nil'}</dd>
@@ -254,10 +254,10 @@ export default function Examiner() {
         <dd>{query.data.workPlace.designation}</dd>
 
         <dt className="text-sm text-muted-foreground">College Name</dt>
-        <dd>{query.data.workPlace.collegeName}</dd>
+        <dd className='wrap-anywhere'>{query.data.workPlace.collegeName}</dd>
 
         <dt className="text-sm text-muted-foreground">College Place</dt>
-        <dd>{query.data.workPlace.collegePlace}</dd>
+        <dd className='wrap-anywhere'>{query.data.workPlace.collegePlace}</dd>
 
         <dt className="text-sm text-muted-foreground">College Pincode</dt>
         <dd>{query.data.workPlace.collegePinCode}</dd>
@@ -291,7 +291,7 @@ export default function Examiner() {
       </div>
       <dl className="grid grid-cols-[140px_1fr] gap-x-4 gap-y-3 px-8 border p-4 rounded-(--radius)">
         <dt className="text-sm text-muted-foreground">Email</dt>
-        <dd className="font-medium">{query.data.contact.email}</dd>
+        <dd className="font-medium wrap-anywhere">{query.data.contact.email}</dd>
 
         <dt className="text-sm text-muted-foreground">Phone</dt>
         <dd>{query.data.contact.phone}</dd>
