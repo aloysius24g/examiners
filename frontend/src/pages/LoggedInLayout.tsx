@@ -92,7 +92,7 @@ export default function LoggedInLayout() {
         </nav>
       </div>
     </header>
-    <div className="flex grow">
+    <div className={`${isMobile === true ? '' : 'flex'} grow`}>
       {/* Sidebar */}
 
       {! isMobile && 
