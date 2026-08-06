@@ -143,6 +143,8 @@ async function getTsUserBio(id: number) {
       internal: tsUser.internal,
       userVerified: tsUser.userVerified,
       userBlacklisted: tsUser.userBlacklisted,
+      theoryCoursesLastUpdated: tsUser.theoryCoursesLastUpdated,
+      practicalCoursesLastUpdated: tsUser.practicalCoursesLastUpdated,
       preferredFor: tsUser.preferences.map(p => p.preferredFor),
     });
   }catch(e) {

@@ -233,6 +233,8 @@ export async function getTsUser(id: number): Promise<Result<TsUserDetailedDTO, S
     },
     theoryHandled: theoryHandledRequest.value,
     practicalHandled: practicalHandledRequest.value,
+    theoryCoursesLastUpdated: bioRequest.value.theoryCoursesLastUpdated?.toISOString() ?? null,
+    practicalCoursesLastUpdated: bioRequest.value.practicalCoursesLastUpdated?.toISOString() ?? null, 
     ...(ability.can('view', 'examinerPrivateFields') ?
         {
           userVerified: bioRequest.value.userVerified, 

@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+import utc from "dayjs/plugin/utc";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +25,8 @@ import type { ContactDTO, WorkPlaceDTO } from '../../../backend/src/controllers/
 import type { TsUserDetailedDTO, UpdatablePersonalInfoDTO } from '../../../backend/src/controllers/tsUserController';
 import type { CourseDTO } from "../../../backend/src/controllers/courseController";
 import { Switch } from "@/components/ui/switch";
+
+dayjs.extend(utc);
 
 const prefOptions = [
   {label: 'Setter', value:'questionSetter'},
@@ -296,7 +300,7 @@ export default function Examiner() {
 
     {/*Theory Courses*/}
     <section className="space-y-4 max-w-260 mx-auto">
-      <div className="flex justify-between">
+      <div className="flex justify-between m-0">
         <span className="text-lg">
           Theory Courses Handled
         </span>
@@ -312,6 +316,11 @@ export default function Examiner() {
         </Dialog>
         }
       </div>
+      <div className="text-muted-foreground text-sm">
+        { query.data.theoryCoursesLastUpdated &&
+          `Last Updated: ${dayjs.utc(query.data.theoryCoursesLastUpdated).local().format('D MMMM YYYY')}`
+        }
+      </div>
       <div className="flex gap-2 flex-wrap px-8 border p-4 rounded-(--radius)">
         {query.data.theoryHandled.map(c => 
           <Badge key={c.courseCode} className="p-3" variant='secondary'>
@@ -323,7 +332,7 @@ export default function Examiner() {
 
     {/*Practical Courses*/}
     <section className="space-y-4 max-w-260 mx-auto">
-      <div className="flex justify-between">
+      <div className="flex justify-between m-0">
         <span className="text-lg">
           Practical Courses Handled
         </span>
@@ -337,6 +346,11 @@ export default function Examiner() {
           </DialogTrigger>
           <PracticalCoursesEditor />
         </Dialog>
+        }
+      </div>
+      <div className="text-muted-foreground text-sm">
+        { query.data.practicalCoursesLastUpdated &&
+          `Last Updated: ${dayjs.utc(query.data.practicalCoursesLastUpdated).local().format('D MMMM YYYY')}`
         }
       </div>
       <div className="flex gap-2 flex-wrap px-8 border p-4 rounded-(--radius)">
@@ -889,6 +903,8 @@ function PracticalCoursesEditor() {
     </DialogHeader>
     <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
       <MultiSelect
+        hideSelectAll={true}
+        modalPopover={true} // to make the list scroll. Important
         className="border-border"
         maxCount={6}
         options={courseValuesForMulti}

@@ -60,10 +60,15 @@ export type TsUserDetailedDTO =
       phone: string,
     },
     theoryHandled: CourseDTO[],
-    practicalHandled: CourseDTO[]
+    practicalHandled: CourseDTO[],
+    theoryCoursesLastUpdated: string | null,
+    practicalCoursesLastUpdated: string | null
   }
 
-export type TsUserListDTO = (TsUserDetailedDTO & {id: number})[]
+export type TsUserListDTO = Omit<
+  (TsUserDetailedDTO & {id: number})
+  , "theoryCoursesLastUpdated" | "practicalCoursesLastUpdated"
+>[]
 
 export type WorkPlaceDTO = {
   designation: string,

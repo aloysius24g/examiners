@@ -21,6 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "dayjs": "^1.11.21",
     "formik": "^2.4.9",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.23.0",
