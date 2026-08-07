@@ -171,15 +171,7 @@ export default function Examiner() {
             Preferences
           </span>
           { ability.can('update', 'examinerPreference') &&
-            <Dialog>
-              <DialogTrigger asChild>
-                  <Button>
-                    <Pencil/>
-                    Edit
-                  </Button>
-              </DialogTrigger>
-              <PreferencesEditor />
-            </Dialog>
+            <PreferencesEditor />
           }
         </div>
 
@@ -202,15 +194,7 @@ export default function Examiner() {
           Personal Information
         </span>
         { ability.can('update', {kind: 'personalInformation', userId: Number(id)}) &&
-          <Dialog>
-            <DialogTrigger asChild>
-                <Button>
-                  <Pencil/>
-                  Edit
-                </Button>
-            </DialogTrigger>
-            <PersonalInfoEditor />
-          </Dialog>
+          <PersonalInfoEditor />
         }
       </div>
       <dl className="grid grid-cols-[140px_1fr] gap-x-4 gap-y-3 px-8 border p-4 rounded-(--radius)">
@@ -238,15 +222,7 @@ export default function Examiner() {
           College Information
         </span>
         { ability.can('update', {kind: 'workPlace', userId: Number(id)}) &&
-          <Dialog>
-            <DialogTrigger asChild>
-                <Button>
-                  <Pencil/>
-                  Edit
-                </Button>
-            </DialogTrigger>
-            <CollegeInfoEditor />
-          </Dialog>
+          <CollegeInfoEditor />
         }
       </div>
       <dl className="grid grid-cols-[140px_1fr] gap-x-4 gap-y-3 px-8 border p-4 rounded-(--radius)">
@@ -278,15 +254,7 @@ export default function Examiner() {
           Contact Information
         </span>
         { ability.can('update', {kind: 'contact', userId: Number(id)}) &&
-        <Dialog>
-          <DialogTrigger asChild>
-              <Button>
-                <Pencil/>
-                Edit
-              </Button>
-          </DialogTrigger>
-          <ContactInfoEditor />
-        </Dialog>
+        <ContactInfoEditor />
         }
       </div>
       <dl className="grid grid-cols-[140px_1fr] gap-x-4 gap-y-3 px-8 border p-4 rounded-(--radius)">
@@ -305,15 +273,7 @@ export default function Examiner() {
           Theory Courses Handled
         </span>
         { ability.can('update', {kind: 'coursesHandled', userId: Number(id)}) &&
-        <Dialog>
-          <DialogTrigger asChild>
-              <Button>
-                <Pencil/>
-                Edit
-              </Button>
-          </DialogTrigger>
-          <TheoryCoursesEditor />
-        </Dialog>
+        <TheoryCoursesEditor />
         }
       </div>
       <div className="text-muted-foreground text-sm">
@@ -337,15 +297,7 @@ export default function Examiner() {
           Practical Courses Handled
         </span>
         { ability.can('update', {kind: 'coursesHandled', userId: Number(id)}) &&
-        <Dialog>
-          <DialogTrigger asChild>
-              <Button>
-                <Pencil/>
-                Edit
-              </Button>
-          </DialogTrigger>
-          <PracticalCoursesEditor />
-        </Dialog>
+        <PracticalCoursesEditor />
         }
       </div>
       <div className="text-muted-foreground text-sm">
@@ -368,6 +320,7 @@ export default function Examiner() {
 
 function CollegeInfoEditor() {
 
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const {id} = useParams();
 
   const query = useQuery({
@@ -434,103 +387,113 @@ function CollegeInfoEditor() {
       })
 
       await mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}))
+      await mutPromise.then(() => setIsEditorOpen(false))
     },
 
   });
 
   return(
-    <DialogContent className="gap-0">
-      <DialogHeader>
-        <DialogTitle>
-         Edit College Information
-        </DialogTitle>
-        <DialogDescription>
-        </DialogDescription>
-      </DialogHeader>
-      <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
-        <div className="space-y-2">
-          <Label className="">Designation</Label>
-          <Select
-            value={fs.values.designation}
-            onValueChange={v => fs.setFieldValue('designation', v)}
-            onOpenChange={() => fs.setFieldTouched('designation', true)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select" />
-            </SelectTrigger>
+    <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen} >
+      <DialogTrigger asChild>
+          <Button>
+            <Pencil/>
+            Edit
+          </Button>
+      </DialogTrigger>
+      <DialogContent className="gap-0">
+        <DialogHeader>
+          <DialogTitle>
+           Edit College Information
+          </DialogTitle>
+          <DialogDescription>
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
+          <div className="space-y-2">
+            <Label className="">Designation</Label>
+            <Select
+              value={fs.values.designation}
+              onValueChange={v => fs.setFieldValue('designation', v)}
+              onOpenChange={() => fs.setFieldTouched('designation', true)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
 
-            <SelectContent>
-              <SelectItem value="Assistant Professor">Assistant Professor</SelectItem>
-              <SelectItem value="Associate Professor">Associate Professor</SelectItem>
-              <SelectItem value="Professor">Professor</SelectItem>
-            </SelectContent>
-          </Select>
-          <FormikErrorField name="designation" formikState={fs} />
-        </div>
+              <SelectContent>
+                <SelectItem value="Assistant Professor">Assistant Professor</SelectItem>
+                <SelectItem value="Associate Professor">Associate Professor</SelectItem>
+                <SelectItem value="Professor">Professor</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormikErrorField name="designation" formikState={fs} />
+          </div>
 
-        <div className="space-y-2">
-          <Label className="">College Name</Label>
-          <Input
-            id='collegeName'
-            name='collegeName'
-            type="text"
-            value={fs.values.collegeName}
-            onChange={e => fs.setFieldValue('collegeName', e.target.value)}
-            onBlur={fs.handleBlur}
-          />
-          <FormikErrorField name="collegeName" formikState={fs} />
-        </div>
+          <div className="space-y-2">
+            <Label className="">College Name</Label>
+            <Input
+              id='collegeName'
+              name='collegeName'
+              type="text"
+              value={fs.values.collegeName}
+              onChange={e => fs.setFieldValue('collegeName', e.target.value)}
+              onBlur={fs.handleBlur}
+            />
+            <FormikErrorField name="collegeName" formikState={fs} />
+          </div>
 
-        <div className="space-y-2">
-          <Label className="">College Place</Label>
-          <Input
-          id='collegePlace'
-          name='collegePlace'
-            type="text"
-            value={fs.values.collegePlace}
-            onChange={e => fs.setFieldValue('collegePlace', e.target.value)}
-            onBlur={fs.handleBlur}
-          />
-          <FormikErrorField name="collegePlace" formikState={fs} />
-        </div>
+          <div className="space-y-2">
+            <Label className="">College Place</Label>
+            <Input
+            id='collegePlace'
+            name='collegePlace'
+              type="text"
+              value={fs.values.collegePlace}
+              onChange={e => fs.setFieldValue('collegePlace', e.target.value)}
+              onBlur={fs.handleBlur}
+            />
+            <FormikErrorField name="collegePlace" formikState={fs} />
+          </div>
 
-        <div className="space-y-2">
-          <Label className="">College Pincode</Label>
-          <Input
-            id='collegePinCode'
-            name='collegePinCode'
-            type="text"
-            value={fs.values.collegePinCode}
-            onChange={e => fs.setFieldValue('collegePinCode', e.target.value)}
-            onBlur={fs.handleBlur}
-          />
-          <FormikErrorField name="collegePinCode" formikState={fs} />
-        </div>
+          <div className="space-y-2">
+            <Label className="">College Pincode</Label>
+            <Input
+              id='collegePinCode'
+              name='collegePinCode'
+              type="text"
+              value={fs.values.collegePinCode}
+              onChange={e => fs.setFieldValue('collegePinCode', e.target.value)}
+              onBlur={fs.handleBlur}
+            />
+            <FormikErrorField name="collegePinCode" formikState={fs} />
+          </div>
 
-        <div className="space-y-2">
-          <Label className="">College Id Card Image</Label>
-          <Input
-            name='idCardImage'
-            type="file"
-            accept="image/png, image/jpeg"
-            //value={fs.values.idCardImage ?? undefined}
-            onChange={(v) => fs.setFieldValue('idCardImage', v.currentTarget.files?.[0] ?? null)}
-            onBlur={fs.handleBlur}
-          />
-          <FormikErrorField name='idCardImage' formikState={fs} />
+          <div className="space-y-2">
+            <Label className="">College Id Card Image</Label>
+            <Input
+              name='idCardImage'
+              type="file"
+              accept="image/png, image/jpeg"
+              //value={fs.values.idCardImage ?? undefined}
+              onChange={(v) => fs.setFieldValue('idCardImage', v.currentTarget.files?.[0] ?? null)}
+              onBlur={fs.handleBlur}
+            />
+            <FormikErrorField name='idCardImage' formikState={fs} />
+          </div>
         </div>
-      </div>
-      <DialogFooter>
-        <Button type="submit" onClick={() => fs.handleSubmit()} disabled={fs.isSubmitting} >
-          Save
-        </Button>
-      </DialogFooter>
-    </DialogContent>
+        <DialogFooter>
+          <Button type="submit" onClick={() => fs.handleSubmit()} disabled={mut.isPending} >
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
 function PersonalInfoEditor() {
 
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const { id } = useParams();
 
   const query = useQuery({
@@ -570,67 +533,77 @@ function PersonalInfoEditor() {
         error: (e) => e.response?.data?.message ?? 'something went wrong',
       })
       await mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
+      await mutPromise.then(() => setIsEditorOpen(false));
     }
   });
   return(
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>
-          Edit Personal Information
-        </DialogTitle>
-        <DialogDescription>
-        </DialogDescription>
-      </DialogHeader>
-      <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
-        <div className="space-y-2">
-          <Label className="">AICTE Number (Optional)</Label>
-          <div className='flex gap-1 items-center'>
-            <Input value='1-' disabled className='w-10' />
+    <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen} >
+      <DialogTrigger asChild>
+          <Button>
+            <Pencil/>
+            Edit
+          </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            Edit Personal Information
+          </DialogTitle>
+          <DialogDescription>
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
+          <div className="space-y-2">
+            <Label className="">AICTE Number (Optional)</Label>
+            <div className='flex gap-1 items-center'>
+              <Input value='1-' disabled className='w-10' />
+              <Input
+                name="aicteNo"
+                className='grow'
+                value={fs.values.aicteNo}
+                onChange={(v) => fs.setFieldValue('aicteNo', v.target.value)}
+                onBlur={fs.handleBlur}
+              />
+            </div>
+            <FormikErrorField name='aicteNo' formikState={fs} />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="aicteNo">Anna University Faculty Identification Number (Optional)</Label>
             <Input
-              name="aicteNo"
-              className='grow'
-              value={fs.values.aicteNo}
-              onChange={(v) => fs.setFieldValue('aicteNo', v.target.value)}
+              name="annaUnivNo"
+              value={fs.values.annaUnivNo}
+              onChange={(v) => fs.setFieldValue('annaUnivNo', v.target.value)}
               onBlur={fs.handleBlur}
             />
+            <FormikErrorField name='annaUnivNo' formikState={fs} />
           </div>
-          <FormikErrorField name='aicteNo' formikState={fs} />
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="aicteNo">Anna University Faculty Identification Number (Optional)</Label>
-          <Input
-            name="annaUnivNo"
-            value={fs.values.annaUnivNo}
-            onChange={(v) => fs.setFieldValue('annaUnivNo', v.target.value)}
-            onBlur={fs.handleBlur}
-          />
-          <FormikErrorField name='annaUnivNo' formikState={fs} />
+          <div className="space-y-2 flex flex-col gap-2">
+            <Label htmlFor="yearOfExperience">Year of experience</Label>
+            <Input
+              inputMode='numeric'
+              name="yearOfExperience"
+              value={fs.values.yearOfExperience}
+              onChange={(v) => {fs.setFieldValue('yearOfExperience', v.target.value)}}
+              onBlur={fs.handleBlur}
+            />
+            <FormikErrorField name='yearOfExperience' formikState={fs} />
+          </div>
         </div>
-
-        <div className="space-y-2 flex flex-col gap-2">
-          <Label htmlFor="yearOfExperience">Year of experience</Label>
-          <Input
-            inputMode='numeric'
-            name="yearOfExperience"
-            value={fs.values.yearOfExperience}
-            onChange={(v) => {fs.setFieldValue('yearOfExperience', v.target.value)}}
-            onBlur={fs.handleBlur}
-          />
-          <FormikErrorField name='yearOfExperience' formikState={fs} />
-        </div>
-      </div>
-      <DialogFooter>
-        <Button onClick={() => fs.handleSubmit()} disabled={fs.isSubmitting} >
-        Save
-        </Button>
-      </DialogFooter>
-    </DialogContent>
+        <DialogFooter>
+          <Button onClick={() => fs.handleSubmit()} disabled={personalMut.isPending} >
+          Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
 function ContactInfoEditor() {
 
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const { id } = useParams();
 
   const query = useQuery({
@@ -672,9 +645,17 @@ function ContactInfoEditor() {
         error: (e) => e.response?.data?.message ?? 'something went wrong',
       })
       await mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
+      await mutPromise.then(() => setIsEditorOpen(false));
     }
   });
   return(
+  <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
+    <DialogTrigger asChild>
+        <Button>
+          <Pencil/>
+          Edit
+        </Button>
+    </DialogTrigger>
     <DialogContent>
       <DialogHeader>
         <DialogTitle>
@@ -739,16 +720,18 @@ function ContactInfoEditor() {
         </div>
       </div>
       <DialogFooter>
-        <Button onClick={() => fs.handleSubmit()} disabled={fs.isSubmitting} >
+        <Button onClick={() => fs.handleSubmit()} disabled={contactMut.isPending} >
         Save
         </Button>
       </DialogFooter>
     </DialogContent>
+  </Dialog>
   )
 }
 
 function TheoryCoursesEditor() {
 
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [selection, setSelection] = useState<string[]>([]);
 
   const { id } = useParams();
@@ -810,36 +793,45 @@ function TheoryCoursesEditor() {
       error: (e) => e.response?.data?.message ?? 'something went wrong',
     })
     mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
+    mutPromise.then(() => setIsEditorOpen(false));
   }
 
-  return <DialogContent className="sm:max-w-[80vw]">
-    <DialogHeader>
-      <DialogTitle>
-        Choose Theory Courses
-      </DialogTitle>
-    </DialogHeader>
-    <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
-      <MultiSelect
-        hideSelectAll={true}
-        modalPopover={true} // to make the list scroll. Important
-        className="border-border"
-        maxCount={6}
-        options={courseValuesForMulti}
-        onValueChange={setSelection}
-        defaultValue={selection}
-      />
-    </div>
-    <DialogFooter>
-      <Button onClick={() => handleSubmit()} disabled={theoryCoursesMut.isPending} >
-        Save
-      </Button>
-    </DialogFooter>
-  </DialogContent>
+  return <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen} >
+    <DialogTrigger asChild>
+        <Button>
+          <Pencil/>
+          Edit
+        </Button>
+    </DialogTrigger>
+    <DialogContent className="sm:max-w-[80vw]">
+      <DialogHeader>
+        <DialogTitle>
+          Choose Theory Courses
+        </DialogTitle>
+      </DialogHeader>
+      <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
+        <MultiSelect
+          hideSelectAll={true}
+          modalPopover={true} // to make the list scroll. Important
+          className="border-border"
+          maxCount={6}
+          options={courseValuesForMulti}
+          onValueChange={setSelection}
+          defaultValue={selection}
+        />
+      </div>
+      <DialogFooter>
+        <Button onClick={() => handleSubmit()} disabled={theoryCoursesMut.isPending} >
+          Save
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 }
 
 function PracticalCoursesEditor() {
 
-  const [isSubmitEnable, setIsSubmitEnable] = useState(true);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
 
   const [selection, setSelection] = useState<string[]>([]);
 
@@ -893,7 +885,6 @@ function PracticalCoursesEditor() {
   }));
 
   const handleSubmit = () => {
-    setIsSubmitEnable(false);
     const selectedCourses = practicalCoursesQuery.data.filter(c => selection.includes(c.courseCode))
     const mutPromise = practicalCoursesMut.mutateAsync(selectedCourses);
     toast.promise(mutPromise, {
@@ -902,39 +893,48 @@ function PracticalCoursesEditor() {
       error: (e) => e.response?.data?.message ?? 'something went wrong',
     })
     mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
-    mutPromise.then(() => setIsSubmitEnable(true));
+    mutPromise.then(() => setIsEditorOpen(false));
   }
 
-  return <DialogContent className="sm:max-w-[80vw]">
-    <DialogHeader>
-      <DialogTitle>
-        Choose Practical Courses
-      </DialogTitle>
-    </DialogHeader>
-    <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
-      <MultiSelect
-        hideSelectAll={true}
-        modalPopover={true} // to make the list scroll. Important
-        className="border-border"
-        maxCount={6}
-        options={courseValuesForMulti}
-        defaultValue={selection}
-        onValueChange={setSelection}
-      />
-    </div>
-    <DialogFooter>
-      <Button
-        onClick={() => handleSubmit()}
-        disabled={! isSubmitEnable}
-      >
-        Save
-      </Button>
-    </DialogFooter>
-  </DialogContent>
+  return <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen} >
+    <DialogTrigger asChild>
+        <Button>
+          <Pencil/>
+          Edit
+        </Button>
+    </DialogTrigger>
+    <DialogContent className="sm:max-w-[80vw]">
+      <DialogHeader>
+        <DialogTitle>
+          Choose Practical Courses
+        </DialogTitle>
+      </DialogHeader>
+      <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
+        <MultiSelect
+          hideSelectAll={true}
+          modalPopover={true} // to make the list scroll. Important
+          className="border-border"
+          maxCount={6}
+          options={courseValuesForMulti}
+          defaultValue={selection}
+          onValueChange={setSelection}
+        />
+      </div>
+      <DialogFooter>
+        <Button
+          onClick={() => handleSubmit()}
+          disabled={practicalCoursesMut.isPending}
+        >
+          Save
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 }
 
 function PreferencesEditor() {
 
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [selection, setSelection] = useState<string[]>([]);
 
   const { id } = useParams();
@@ -982,27 +982,36 @@ function PreferencesEditor() {
       error: (e) => e.response?.data?.message ?? 'something went wrong',
     })
     mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
+    mutPromise.then(() => setIsEditorOpen(false));
   }
 
-  return <DialogContent className="sm:max-w-[50vw]">
-    <DialogHeader>
-      <DialogTitle>
-        Choose Preferences
-      </DialogTitle>
-    </DialogHeader>
-    <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
-      <MultiSelect
-        className="border-border"
-        maxCount={6}
-        options={prefOptions}
-        defaultValue={selection}
-        onValueChange={setSelection}
-      />
-    </div>
-    <DialogFooter>
-      <Button onClick={() => handleSubmit()}>
-        Save
-      </Button>
-    </DialogFooter>
-  </DialogContent>
+  return <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen} >
+    <DialogTrigger asChild>
+        <Button>
+          <Pencil/>
+          Edit
+        </Button>
+    </DialogTrigger>
+    <DialogContent className="sm:max-w-[50vw]">
+      <DialogHeader>
+        <DialogTitle>
+          Choose Preferences
+        </DialogTitle>
+      </DialogHeader>
+      <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
+        <MultiSelect
+          className="border-border"
+          maxCount={6}
+          options={prefOptions}
+          defaultValue={selection}
+          onValueChange={setSelection}
+        />
+      </div>
+      <DialogFooter>
+        <Button onClick={() => handleSubmit()} disabled={prefMut.isPending}>
+          Save
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 }
