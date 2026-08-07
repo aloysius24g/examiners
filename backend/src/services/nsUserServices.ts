@@ -40,6 +40,10 @@ export async function registerNsUser(params: NsUserRegistrationDTO): Promise<Res
   if(! userCreationRes.success) {
     switch(userCreationRes.error.cause) {
       case "DuplicateRecord":
+        return error({
+          cause: 'BussinessConstraintViolation',
+          message: 'username should be unique.' 
+        })
       case "RecordNotFound":
       case "ForeignKeyViolation":
       case "KnownRequestError":
