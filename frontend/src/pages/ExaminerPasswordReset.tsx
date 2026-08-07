@@ -190,6 +190,7 @@ export function ExaminerPasswordReset() {
           <Button
             onClick={() => fs.handleSubmit()}
             type="submit"
+            disabled={mut.isPending}
           >
             Reset Password
           </Button>

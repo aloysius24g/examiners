@@ -94,7 +94,7 @@ export function ExaminerLoginPage() {
               <FormikErrorField name="password" formikState={fs}/>
             </div>
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={mut.isPending}>
               Login
             </Button>
             <div className="flex justify-center gap-2">
@@ -195,7 +195,7 @@ export function OfficerLoginPage() {
               <FormikErrorField name="password" formikState={fs}/>
             </div>
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={mut.isPending}>
               Login
             </Button>
           </form>

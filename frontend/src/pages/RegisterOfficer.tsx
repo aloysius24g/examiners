@@ -184,6 +184,7 @@ export default function RegisterOfficer() {
               <Button
                 type="button"
                 onClick={() => fs.handleSubmit()}
+                disabled={mut.isPending}
               >
                 Create
               </Button>

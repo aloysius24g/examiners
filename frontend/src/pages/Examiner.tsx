@@ -70,7 +70,7 @@ export default function Examiner() {
     const ability = abilitiesFor(userContext.data)
     if(ability.cannot('view', {kind: 'examiner', id: Number(id)})) {
       navigate('/login/examiner');
-      toast.error('Not enough permission.');
+      //toast.error('Not enough permission.');
     }
   }, [userContext.data])
 
@@ -407,10 +407,16 @@ function CollegeInfoEditor() {
 
       const formData = new FormData();
       formData.append('file', v.idCardImage);
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/id-card-image`, {
+      const resP = fetch(`${import.meta.env.VITE_API_URL}/id-card-image`, {
         method: 'POST',
         body: formData
       })
+      toast.promise(resP, {
+        loading: 'Uploading id card image.',
+        success: 'uploaded.',
+        error: (e) => e.response?.data?.message ?? 'Cannot upload id card image.',
+      })
+      const res = await resP;
       if(res.status !== 201) {
         return toast.error('Cannot upload image.');
       }
@@ -427,7 +433,7 @@ function CollegeInfoEditor() {
         error: (e) => e.response?.data?.message ?? 'something went wrong',
       })
 
-      mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}))
+      await mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}))
     },
 
   });
@@ -515,7 +521,7 @@ function CollegeInfoEditor() {
         </div>
       </div>
       <DialogFooter>
-        <Button onClick={() => fs.handleSubmit()}>
+        <Button type="submit" onClick={() => fs.handleSubmit()} disabled={fs.isSubmitting} >
           Save
         </Button>
       </DialogFooter>
@@ -550,7 +556,7 @@ function PersonalInfoEditor() {
       yearOfExperience: query.data?.bio.yearOfExperience ?? 0,
     },
     validationSchema: personalInfoValidator,
-    onSubmit: (vo) => {
+    onSubmit: async (vo) => {
       //ATTENTION
       // cant get yup to tranform empty string to null. so doing it here
       const v = personalInfoValidator.cast(vo);
@@ -563,7 +569,7 @@ function PersonalInfoEditor() {
         success: 'Updated.',
         error: (e) => e.response?.data?.message ?? 'something went wrong',
       })
-      mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
+      await mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
     }
   });
   return(
@@ -577,7 +583,7 @@ function PersonalInfoEditor() {
       </DialogHeader>
       <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
         <div className="space-y-2">
-          <Label className="">AICTE Number</Label>
+          <Label className="">AICTE Number (Optional)</Label>
           <div className='flex gap-1 items-center'>
             <Input value='1-' disabled className='w-10' />
             <Input
@@ -615,7 +621,7 @@ function PersonalInfoEditor() {
         </div>
       </div>
       <DialogFooter>
-        <Button onClick={() => fs.handleSubmit()}>
+        <Button onClick={() => fs.handleSubmit()} disabled={fs.isSubmitting} >
         Save
         </Button>
       </DialogFooter>
@@ -657,7 +663,7 @@ function ContactInfoEditor() {
       otp: ''
     },
     validationSchema: contactValidator,
-    onSubmit: (vo) => {
+    onSubmit: async (vo) => {
       const v = contactValidator.cast(vo);
       const mutPromise = contactMut.mutateAsync(v)
       toast.promise(mutPromise, {
@@ -665,7 +671,7 @@ function ContactInfoEditor() {
         success: 'Contact Updated.',
         error: (e) => e.response?.data?.message ?? 'something went wrong',
       })
-      mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
+      await mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
     }
   });
   return(
@@ -733,7 +739,7 @@ function ContactInfoEditor() {
         </div>
       </div>
       <DialogFooter>
-        <Button onClick={() => fs.handleSubmit()}>
+        <Button onClick={() => fs.handleSubmit()} disabled={fs.isSubmitting} >
         Save
         </Button>
       </DialogFooter>
@@ -824,7 +830,7 @@ function TheoryCoursesEditor() {
       />
     </div>
     <DialogFooter>
-      <Button onClick={() => handleSubmit()}>
+      <Button onClick={() => handleSubmit()} disabled={theoryCoursesMut.isPending} >
         Save
       </Button>
     </DialogFooter>
@@ -832,6 +838,8 @@ function TheoryCoursesEditor() {
 }
 
 function PracticalCoursesEditor() {
+
+  const [isSubmitEnable, setIsSubmitEnable] = useState(true);
 
   const [selection, setSelection] = useState<string[]>([]);
 
@@ -885,6 +893,7 @@ function PracticalCoursesEditor() {
   }));
 
   const handleSubmit = () => {
+    setIsSubmitEnable(false);
     const selectedCourses = practicalCoursesQuery.data.filter(c => selection.includes(c.courseCode))
     const mutPromise = practicalCoursesMut.mutateAsync(selectedCourses);
     toast.promise(mutPromise, {
@@ -893,6 +902,7 @@ function PracticalCoursesEditor() {
       error: (e) => e.response?.data?.message ?? 'something went wrong',
     })
     mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
+    mutPromise.then(() => setIsSubmitEnable(true));
   }
 
   return <DialogContent className="sm:max-w-[80vw]">
@@ -913,7 +923,10 @@ function PracticalCoursesEditor() {
       />
     </div>
     <DialogFooter>
-      <Button onClick={() => handleSubmit()}>
+      <Button
+        onClick={() => handleSubmit()}
+        disabled={! isSubmitEnable}
+      >
         Save
       </Button>
     </DialogFooter>

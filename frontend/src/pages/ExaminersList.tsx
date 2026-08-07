@@ -5,7 +5,6 @@ import { abilitiesFor } from "@/permissions";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 
 import type { TsUserListDTO } from '../../../backend/src/controllers/tsUserController';
@@ -26,7 +25,7 @@ export default function ExaminersList() {
     const ability = abilitiesFor(userContext.data)
     if(ability.cannot('view', 'officer')) {
       navigate('/login/examiner');
-      toast.error('Not enough permission.');
+      //toast.error('Not enough permission.');
     }
   }, [userContext.data])
 
