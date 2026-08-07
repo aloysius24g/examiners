@@ -74,6 +74,10 @@ export async function registerTsUser(params: TsUserRegistrationDTO): Promise<Res
   if(! userCreationResponse.success) {
     switch(userCreationResponse.error.cause) {
       case "DuplicateRecord":
+        return error({
+          cause: 'BussinessConstraintViolation',
+          message: `${userCreationResponse.error.fields} already taken.`
+        })
       case "RecordNotFound":
       case "ForeignKeyViolation":
       case "KnownRequestError":
