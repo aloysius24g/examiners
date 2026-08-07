@@ -35,12 +35,7 @@ export default function RegisterExaminer() {
   }) 
 
   const mut = useMutation({
-    mutationFn: async (v: TsUserRegistrationDTO)  => await apiClient.post('/examiners', v),
-    onSuccess: () => {
-      toast.success('Registered Successfully.');
-      navigate('/login/examiner');
-    },
-    onError: () => toast.error('something went wrong.'),
+    mutationFn: async (v: TsUserRegistrationDTO)  => await apiClient.post('/examiners', v)
   }) 
   
   const fs = useFormik({
@@ -91,7 +86,13 @@ export default function RegisterExaminer() {
       payload.aicteNo = payload.aicteNo === '' ? null : payload.aicteNo
       payload.annaUnivNo = payload.annaUnivNo === '' ? null : payload.annaUnivNo;
 
-      mut.mutate(payload)
+      const mutP = mut.mutateAsync(payload)
+      toast.promise(mutP, {
+        loading: 'Registering...',
+        success: 'Registered Successfully.',
+        error: (e) => e.response?.data?.message ?? 'something went wrong',
+      })
+      mutP.then(() => navigate('/login/examiner'))
     }
   });
   return (
@@ -454,6 +455,7 @@ export default function RegisterExaminer() {
 
               <Button
                 type="submit"
+                disabled={mut.isPending}
               >
                 Register
               </Button>
