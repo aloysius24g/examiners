@@ -50,26 +50,36 @@ function prismaErrorAsValue(e: unknown): Result<never, DalError> {
   }
 
   if (e instanceof Prisma.PrismaClientKnownRequestError) {
+    const driverAdapterError = e.meta?.driverAdapterError as
+    | {
+        cause?: {
+          constraint?: {
+            fields?: string;
+          };
+        };
+      }
+    | undefined;
+
     switch (e.code) {
       case 'P2002':
         return error({
         cause: 'DuplicateRecord',
         message: e.message,
-        fields: e.meta?.target
+        fields: driverAdapterError?.cause?.constraint?.fields 
       });
 
       case 'P2025':
         return error({
         cause: 'RecordNotFound',
         message: e.message,
-        fields: e.meta?.target
+        fields: driverAdapterError?.cause?.constraint?.fields 
       });
 
       case 'P2003':
         return error({
         cause: 'ForeignKeyViolation',
         message: e.message,
-        fields: e.meta?.target
+        fields: driverAdapterError?.cause?.constraint?.fields 
       });
 
       default:
