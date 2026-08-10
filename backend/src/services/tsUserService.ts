@@ -239,6 +239,7 @@ export async function getTsUser(id: number): Promise<Result<TsUserDetailedDTO, S
     practicalHandled: practicalHandledRequest.value,
     theoryCoursesLastUpdated: bioRequest.value.theoryCoursesLastUpdated?.toISOString() ?? null,
     practicalCoursesLastUpdated: bioRequest.value.practicalCoursesLastUpdated?.toISOString() ?? null, 
+    ownPreferences: bioRequest.value.ownPreferences,
     ...(ability.can('view', 'examinerPrivateFields') ?
         {
           userVerified: bioRequest.value.userVerified, 
@@ -747,11 +748,57 @@ export async function updatePreferences(id: number, preferences: string[]):
   if(ability.cannot('update', 'examinerPreference')) {
     return error({
       cause: 'PermissionError',
-      message: 'Not enough permission to update personal information.'
+      message: 'Not enough permission to update preference.'
     });
   }
 
   const updateRes = await tsUserDal.updatePreferences(id, safePreferences.data);
+  if(! updateRes.success) {
+    switch(updateRes.error.cause) {
+      case "ValidationError":
+      case "KnownRequestError":
+        return error({
+          cause: 'ValidationError',
+          message: updateRes.error.message
+        });
+      case "DuplicateRecord":
+      case "RecordNotFound":
+      case "ForeignKeyViolation":
+      case "UnknownRequestError":
+      case "DbUnAvailableError":
+        return error({
+          cause: 'DbError',
+          message: updateRes.error.message
+        });
+    }
+  }
+
+  return success(updateRes.value);
+} 
+
+export async function updateOwnPreferences(id: number, preferences: string[]):
+  Promise<Result<string[], ServiceError>>{
+
+  const safePreferences = preferencesSchema.safeParse(preferences);
+  if(! safePreferences.success) {
+    if(! safePreferences.success) {
+      return error({
+        cause: 'ValidationError',
+        message: safePreferences.error.issues.map(i => i.message).join('\n')
+      })
+    }
+  }
+
+  const userContext = getUserContext();
+  const ability = abilitiesFor(userContext);
+  if(ability.cannot('update', {kind: 'examinerOwnPreference', userId: id})) {
+    return error({
+      cause: 'PermissionError',
+      message: 'Not enough permission to update this examiner\'s preference information.'
+    });
+  }
+
+  const updateRes = await tsUserDal.updateOwnPreferences(id, safePreferences.data);
   if(! updateRes.success) {
     switch(updateRes.error.cause) {
       case "ValidationError":

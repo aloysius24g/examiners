@@ -28,8 +28,21 @@ interface CoursesHandledP {
   kind: 'coursesHandled'
   userId: number
 }
+interface ExaminerOwnPreference {
+  kind: 'examinerOwnPreference'
+  userId: number
+}
 
-type ComplexSub = InferSubjects<OfficerP | ExaminerP | PersonalInfoP |ContactP | WorkPlaceP | CoursesHandledP>
+type ComplexSub = InferSubjects<
+  OfficerP |
+  ExaminerP |
+  PersonalInfoP |
+  ContactP |
+  WorkPlaceP |
+  CoursesHandledP |
+  ExaminerOwnPreference
+>
+
 type Subjects = 
 | 'courseList'
 | 'examinerList'
@@ -66,6 +79,7 @@ export function abilitiesFor(user: UserContext | null) {
     ability.can('update', 'workPlace', {userId: user.id})
     ability.can('update', 'contact', {userId: user.id})
     ability.can('update', 'coursesHandled', {userId: user.id})
+    ability.can('update', 'examinerOwnPreference', {userId: user.id})
     ability.can('update', 'personalInformation', {userId: user.id})
     return ability.build({detectSubjectType: obj => obj.kind});
   }

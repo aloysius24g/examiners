@@ -65,6 +65,7 @@ export type TsUserDetailedDTO =
       email: string,
       phone: string,
     },
+    ownPreferences: string[],
     theoryHandled: CourseDTO[],
     practicalHandled: CourseDTO[],
     theoryCoursesLastUpdated: string | null,
@@ -76,6 +77,7 @@ export type TsUserListDTO = (
     TsUserDetailedDTO,
       "theoryCoursesLastUpdated"
     | "practicalCoursesLastUpdated"
+    | "ownPreferences"
     | "bio"
   > & {
     id: number,
@@ -390,6 +392,35 @@ export class TsUserController extends Controller {
   ): Promise<{preferences: string[]}> {
 
     const updateResponse = await tsUserService.updatePreferences(id, body.preferences);
+
+    if (!updateResponse.success) {
+      switch (updateResponse.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(updateResponse.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(updateResponse.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(updateResponse.error.message);
+        case "PermissionError":
+          case "AuthenticationError":
+          throw new UnauthorizedError(updateResponse.error.message);
+      }
+    }
+
+    return {
+      preferences: updateResponse.value
+    }
+  }
+
+  @Put('{id}/ownPreferences/')
+  public async updateOwnPreferences(
+    @Path() id: number,
+    @Body() body: {preferences: string[]},
+  ): Promise<{preferences: string[]}> {
+
+    const updateResponse = await tsUserService.updateOwnPreferences(id, body.preferences);
 
     if (!updateResponse.success) {
       switch (updateResponse.error.cause) {

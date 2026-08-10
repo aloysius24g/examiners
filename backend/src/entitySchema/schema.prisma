@@ -59,6 +59,7 @@ model TsUser {
   hasUnVerifiedUpdate Boolean @default(false)
 
   preferences Preference[]
+  ownPreferences OwnPreference[]
   theoriesHandled TheoryHandled[]
   practicalsHandled PracticalHandled[]
   collegesWorked CollegeWorked[]
@@ -74,6 +75,14 @@ enum ExaminerRole{
 }
 
 model Preference {
+  userId Int
+  tsUser TsUser @relation(fields: [userId], references: [userId])
+  preferredFor ExaminerRole
+
+  @@id([userId, preferredFor])
+}
+
+model OwnPreference {
   userId Int
   tsUser TsUser @relation(fields: [userId], references: [userId])
   preferredFor ExaminerRole

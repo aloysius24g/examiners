@@ -117,6 +117,7 @@ async function getTsUserBio(id: number) {
       include: {
         coreDetails: true,
         preferences: true,
+        ownPreferences: true,
         collegesWorked: {
           orderBy: {
             recordedAt: "desc"
@@ -152,6 +153,7 @@ async function getTsUserBio(id: number) {
       theoryCoursesLastUpdated: tsUser.theoryCoursesLastUpdated,
       practicalCoursesLastUpdated: tsUser.practicalCoursesLastUpdated,
       preferredFor: tsUser.preferences.map(p => p.preferredFor),
+      ownPreferences: tsUser.ownPreferences.map(p => p.preferredFor),
       ugSpecialization: tsUser.ugSpecialization,
       pgSpecialization: tsUser.pgSpecialization,
       phdSpecialization: tsUser.phdSpecialization
@@ -481,6 +483,32 @@ export async function updatePreferences(id: number, prefs: ExaminerRole[]) {
       });
 
       await tr.preference.createMany({
+        data: prefs.map( p=> {
+          return {
+            userId: id,
+            preferredFor: p,
+          }
+        })
+      })
+    });
+
+    return success(prefs); 
+  }catch(e) {
+    return prismaErrorAsValue(e);
+  }
+}
+
+export async function updateOwnPreferences(id: number, prefs: ExaminerRole[]) {
+
+  try{
+    await db.$transaction(async tr => {
+      await tr.ownPreference.deleteMany({
+        where: {
+          userId: id
+        }
+      });
+
+      await tr.ownPreference.createMany({
         data: prefs.map( p=> {
           return {
             userId: id,

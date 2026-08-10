@@ -31,8 +31,8 @@ dayjs.extend(utc);
 const prefOptions = [
   {label: 'Setter', value:'questionSetter'},
   {label: 'Scrutinizer', value:'questionScrutinizer'},
-  {label: 'Examiner Practical', value:'examinerPractical'},
-  {label: 'Examiner Valuation', value:'examinerValuation'},
+  {label: 'Practical Examiner', value:'examinerPractical'},
+  {label: 'Valuation Examiner', value:'examinerValuation'},
 ]
 
 export default function Examiner() {
@@ -186,6 +186,28 @@ export default function Examiner() {
         </div>
       </section>
     }
+
+    {/*Own Preferences*/}
+    <section className="space-y-4 max-w-260 mx-auto">
+      <div className="flex justify-between">
+        <span className="text-lg">
+          Exam Duty Preference
+        </span>
+        { ability.can('update', {kind: 'examinerOwnPreference', userId: Number(id)}) &&
+          <OwnPreferencesEditor />
+        }
+      </div>
+
+      <div className="px-8 border p-4 rounded-(--radius) flex flex-wrap gap-2">
+        {query.data.ownPreferences.map(p => 
+          <Badge key={p} className="p-3" variant='secondary'>
+            {
+              prefOptions.find(o => o.value === p)?.label ?? ''
+            }
+          </Badge>
+        )}
+      </div>
+    </section>
 
     {/*Bio*/}
     <section className="space-y-4 max-w-260 mx-auto">
@@ -1018,6 +1040,90 @@ function PreferencesEditor() {
       </div>
       <DialogFooter>
         <Button onClick={() => handleSubmit()} disabled={prefMut.isPending}>
+          Save
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+}
+
+function OwnPreferencesEditor() {
+
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [selection, setSelection] = useState<string[]>([]);
+
+  const { id } = useParams();
+
+  const {data: prevPrefData} = useQuery({
+    queryFn: async() => {
+      const res = await apiClient.get<TsUserDetailedDTO>(`/examiners/${id}`)
+      return res.data;
+    },
+    queryKey: ['examiner', id]
+  });
+
+
+  const ownPrefMut = useMutation({
+    mutationFn: async (v: {preferences: string[]}) => {
+      const res = await apiClient.put<{preferences: string[]}>(`/examiners/${id}/ownPreferences`, v)
+      return res.data;
+    } 
+  })
+
+  useEffect(() => {
+    if(! prevPrefData) {
+      return
+    }
+
+    const preSelPref = prevPrefData.ownPreferences
+
+    if(! preSelPref) {
+      return;
+    }
+
+    setSelection(preSelPref);
+
+  }, [prevPrefData])
+
+  if(! prevPrefData) {
+    return <div>Something went wrong</div>
+  }
+
+  const handleSubmit = () => {
+    const mutPromise = ownPrefMut.mutateAsync({preferences: selection});
+    toast.promise(mutPromise, {
+      loading: 'Updating.',
+      success: 'Updated.',
+      error: (e) => e.response?.data?.message ?? 'something went wrong',
+    })
+    mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
+    mutPromise.then(() => setIsEditorOpen(false));
+  }
+
+  return <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen} >
+    <DialogTrigger asChild>
+        <Button>
+          <Pencil/>
+          Edit
+        </Button>
+    </DialogTrigger>
+    <DialogContent className="sm:max-w-[50vw]">
+      <DialogHeader>
+        <DialogTitle>
+          Choose Exam Duty Preferences
+        </DialogTitle>
+      </DialogHeader>
+      <div className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar">
+        <MultiSelect
+          className="border-border"
+          maxCount={6}
+          options={prefOptions}
+          defaultValue={selection}
+          onValueChange={setSelection}
+        />
+      </div>
+      <DialogFooter>
+        <Button onClick={() => handleSubmit()} disabled={ownPrefMut.isPending}>
           Save
         </Button>
       </DialogFooter>
