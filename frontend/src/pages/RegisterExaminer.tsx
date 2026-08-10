@@ -214,14 +214,14 @@ export default function RegisterExaminer() {
 
               <div className="space-y-2 grow">
                 <div className='flex gap-1 items-center'>
-                  <Label htmlFor="aicteNo">AICTE Number (Optional)</Label>
+                  <Label htmlFor="aicteNo">AICTE Number (Mandatory for Intitutions Under AICTE)</Label>
                   <Popover>
                     <PopoverTrigger>
                         <Info className='size-4 mx-1' />
                     </PopoverTrigger>
                     <PopoverContent align="start" side="right">
                       <p>
-                        This is optional only for faculties those who have no AICTE number.<br />
+                        This is optional only for faculties working at institutions those are not under AICTE.<br />
                       </p>
                     </PopoverContent>
                   </Popover>
@@ -242,7 +242,7 @@ export default function RegisterExaminer() {
 
               <div className="space-y-2 grow">
                 <div className='flex gap-1'>
-                <Label htmlFor="aicteNo">Anna University Faculty Identification Number (Optional)</Label>
+                <Label htmlFor="aicteNo">Anna University Faculty Identification Number (Mandatory for Institutions under Anna University.)</Label>
                   <Popover>
                     <PopoverTrigger>
                         <Info className='size-4 mx-1' />
