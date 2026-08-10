@@ -291,7 +291,7 @@ export default function RegisterExaminer() {
 
                 <div className="flex gap-2">
                   <div className="space-y-2 grow">
-                    <Label htmlFor="collegePlace">College Place</Label>
+                    <Label htmlFor="collegePlace">Place of the College</Label>
                     <Input
                       name="collegePlace"
                       placeholder="Eg: Thiruchengode"
