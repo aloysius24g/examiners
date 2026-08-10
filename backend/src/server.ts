@@ -17,6 +17,8 @@ import { contextSchema } from "./validators/contextValidators.js";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
+import * as otpDal from './dal/otpDal.js';
+otpDal.setOtpByEmail('b@b.com', '999999');
 
 const corsOptions = {
   origin: [

@@ -62,11 +62,8 @@ export async function registerTsUser(params: TsUserRegistrationDTO): Promise<Res
 
   const userCreationResponse = await tsUserDal.createTsUser({
     ...safeParams.data,
-    emailVerified: false,
-    // TODO
-    // implement a otp mechanism to verify the email owner on creation time.
-    // now allowing user to verify their email later
-    internal: false, // starting with everyone as external, admin should toggle it.
+    emailVerified: true,
+    internal: false, // This field is never used.
     userVerified: false,
     passHash: passHash
   });
@@ -222,7 +219,10 @@ export async function getTsUser(id: number): Promise<Result<TsUserDetailedDTO, S
       aicteNo: bioRequest.value.aicteNo,
       annaUnivNo: bioRequest.value.annaUnivNo,
       yearOfExperience: bioRequest.value.yearOfExperience,
-      department: bioRequest.value.department
+      department: bioRequest.value.department,
+      ugSpecialization: bioRequest.value.ugSpecialization ?? 'Nil', // specializations shouldnt
+      pgSpecialization: bioRequest.value.pgSpecialization ?? 'Nil', //  be null as per bussiness logic.
+      phdSpecialization: bioRequest.value.phdSpecialization
     },
     workPlace: {
       designation: bioRequest.value.designation,

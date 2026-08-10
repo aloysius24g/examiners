@@ -45,6 +45,9 @@ export default function RegisterExaminer() {
       department: '',                                                                                
       designation: '',
       yearOfExperience: 0,                                                                          
+      ugSpecialization: '',
+      pgSpecialization: '',
+      phdSpecialization: '',
       aicteNo: '',                                                                                   
       annaUnivNo: '',                                                                                
       collegeName: '',                                                                               
@@ -85,6 +88,7 @@ export default function RegisterExaminer() {
       // cant get yup to tranform empty string to null. so doing it here
       payload.aicteNo = payload.aicteNo === '' ? null : payload.aicteNo
       payload.annaUnivNo = payload.annaUnivNo === '' ? null : payload.annaUnivNo;
+      payload.phdSpecialization = payload.phdSpecialization === '' ? null : payload.phdSpecialization;
 
       const mutP = mut.mutateAsync(payload)
       toast.promise(mutP, {
@@ -270,6 +274,39 @@ export default function RegisterExaminer() {
                   onBlur={fs.handleBlur}
                 />
                 <FormikErrorField name='annaUnivNo' formikState={fs} />
+              </div>
+
+              <div className="space-y-2 grow">
+                <Label htmlFor="ugSpecialization">UG Specialization</Label>
+                <Input
+                  name="ugSpecialization"
+                  value={fs.values.ugSpecialization}
+                  onChange={(v) => fs.setFieldValue('ugSpecialization', v.target.value)}
+                  onBlur={fs.handleBlur}
+                />
+                <FormikErrorField name='ugSpecialization' formikState={fs} />
+              </div>
+
+              <div className="space-y-2 grow">
+                <Label htmlFor="pgSpecialization">PG Specialization</Label>
+                <Input
+                  name="pgSpecialization"
+                  value={fs.values.pgSpecialization}
+                  onChange={(v) => fs.setFieldValue('pgSpecialization', v.target.value)}
+                  onBlur={fs.handleBlur}
+                />
+                <FormikErrorField name='pgSpecialization' formikState={fs} />
+              </div>
+
+              <div className="space-y-2 grow">
+                <Label htmlFor="phdSpecialization">PhD Specialization</Label>
+                <Input
+                  name="phdSpecialization"
+                  value={fs.values.phdSpecialization}
+                  onChange={(v) => fs.setFieldValue('phdSpecialization', v.target.value)}
+                  onBlur={fs.handleBlur}
+                />
+                <FormikErrorField name='phdSpecialization' formikState={fs} />
               </div>
 
             </section>

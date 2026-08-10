@@ -63,6 +63,29 @@ const schema = yup.object({
       .min(0, 'Year of Experience is must be positive.')
       .max(40, 'Year of Experience cannot be greater than 40.')
       .required(),
+    ugSpecialization: yup
+      .string()                                                                                   
+      .trim()
+      .label('UG Specialization')
+      .min(2, 'UG Specialization must have atleast 2 characters.')
+      .max(200, 'UG Specialization should not exceed 200 characters.')
+      .required(),
+    pgSpecialization: yup
+      .string()                                                                                   
+      .trim()
+      .label('PG Specialization')
+      .min(2, 'PG Specialization must have atleast 2 characters.')
+      .max(200, 'PG Specialization should not exceed 200 characters.')
+      .required(),
+    phdSpecialization: yup
+      .string()                                                                                   
+      .trim()
+      .label('PhD Specialization')
+      .min(2, 'PhD Specialization must have atleast 2 characters.')
+      .max(200, 'PhD Specialization should not exceed 200 characters.')
+      .nullable()
+      .transform(v => v==='' ? null : v)
+      .default(null),
     collegeName: yup
       .string()
       .trim()

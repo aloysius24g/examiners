@@ -58,6 +58,9 @@ export const tsUserRegistrationSchema = z.object({
     "Associate Professor",
     "Professor"
   ]),
+  ugSpecialization: z.string().trim().min(2).max(254),
+  pgSpecialization: z.string().trim().min(2).max(254),
+  phdSpecialization: z.string().trim().min(2).max(254).nullable(),
 });
 
 //does this even used or duplicated?

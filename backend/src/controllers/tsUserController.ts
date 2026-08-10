@@ -13,6 +13,9 @@ export interface TsUserRegistrationDTO {
   aicteNo: string | null,
   annaUnivNo: string | null,
   yearOfExperience: number,
+  ugSpecialization: string
+  pgSpecialization: string
+  phdSpecialization: string | null,
   collegeName: string,
   collegePlace: string,
   collegePinCode: string,
@@ -46,6 +49,9 @@ export type TsUserDetailedDTO =
       annaUnivNo: string | null,
       yearOfExperience: number,
       department: string,
+      ugSpecialization: string
+      pgSpecialization: string
+      phdSpecialization: string | null,
     },
     workPlace: {
       internal: boolean,
@@ -65,10 +71,22 @@ export type TsUserDetailedDTO =
     practicalCoursesLastUpdated: string | null
   }
 
-export type TsUserListDTO = Omit<
-  (TsUserDetailedDTO & {id: number})
-  , "theoryCoursesLastUpdated" | "practicalCoursesLastUpdated"
->[]
+export type TsUserListDTO = (
+  Omit<
+    TsUserDetailedDTO,
+      "theoryCoursesLastUpdated"
+    | "practicalCoursesLastUpdated"
+    | "bio"
+  > & {
+    id: number,
+    bio : Omit<
+      TsUserDetailedDTO["bio"], 
+      | "ugSpecialization"
+      | "pgSpecialization"
+      | "phdSpecialization"
+    >
+  }
+)[] // we do need bio in user list type. but i have to omit the specialization for now. dirty fix.
 
 export type WorkPlaceDTO = {
   designation: string,

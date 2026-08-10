@@ -212,6 +212,15 @@ export default function Examiner() {
 
         <dt className="text-sm text-muted-foreground">Department</dt>
         <dd>{query.data.bio.department}</dd>
+
+        <dt className="text-sm text-muted-foreground">UG Specialization</dt>
+        <dd>{query.data.bio.ugSpecialization}</dd>
+
+        <dt className="text-sm text-muted-foreground">PG Specialization</dt>
+        <dd>{query.data.bio.pgSpecialization}</dd>
+
+        <dt className="text-sm text-muted-foreground">PhD Specialization</dt>
+        <dd>{query.data.bio.phdSpecialization ?? 'Nil'}</dd>
       </dl>
     </section>
 

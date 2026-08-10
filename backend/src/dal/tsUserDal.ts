@@ -22,6 +22,9 @@ interface TsUserCreateParams {
   aicteNo: string | null,
   annaUnivNo: string | null,
   yearOfExperience: number,
+  ugSpecialization: string
+  pgSpecialization: string
+  phdSpecialization: string | null,
   collegeName: string,
   collegePlace: string,
   collegePinCode: string,
@@ -47,6 +50,9 @@ async function createTsUser(userParams: TsUserCreateParams) {
             annaUnivNo: userParams.annaUnivNo,
             yearOfExperience: userParams.yearOfExperience,
             department: userParams.department,
+            ugSpecialization: userParams.ugSpecialization,
+            pgSpecialization: userParams.pgSpecialization,
+            phdSpecialization: userParams.phdSpecialization,
             collegesWorked: {
               create: {
                 designation: userParams.designation,
@@ -146,6 +152,9 @@ async function getTsUserBio(id: number) {
       theoryCoursesLastUpdated: tsUser.theoryCoursesLastUpdated,
       practicalCoursesLastUpdated: tsUser.practicalCoursesLastUpdated,
       preferredFor: tsUser.preferences.map(p => p.preferredFor),
+      ugSpecialization: tsUser.ugSpecialization,
+      pgSpecialization: tsUser.pgSpecialization,
+      phdSpecialization: tsUser.phdSpecialization
     });
   }catch(e) {
     return prismaErrorAsValue(e);

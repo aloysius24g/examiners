@@ -44,7 +44,10 @@ model TsUser {
   annaUnivNo String? @unique @db.Char(12) //extra 2 char
   department String @db.VarChar(60)
   yearOfExperience Float
-  internal Boolean
+  internal Boolean // unused field
+  ugSpecialization String? @db.VarChar(254)
+  pgSpecialization String? @db.VarChar(254)
+  phdSpecialization String? @db.VarChar(254)
   email String @unique @db.VarChar(254)
   phone String @unique @db.VarChar(15)
   emailVerified Boolean @default(false)
