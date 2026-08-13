@@ -154,10 +154,10 @@ export function ExaminerPasswordReset() {
                   onClick={() => {
                     const mutPromise = otpMut.mutateAsync({ email: fs.values.email})
                     toast.promise(mutPromise, {
-                      loading: "Resetting password.",
+                      loading: "Sending OTP.",
                       error: (e) =>
                         e.response?.data?.message ?? "Something went wrong",
-                      success: "Password reset successfully.",
+                      success: "OTP Sent.",
                     })
                   }}
                   disabled={!! fs.errors.email || fs.values.email === ''}
