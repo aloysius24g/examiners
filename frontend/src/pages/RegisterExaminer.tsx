@@ -173,7 +173,7 @@ export default function RegisterExaminer() {
                     <SelectItem value="Mechanical Engineering">Mechanical Engineering</SelectItem>
                     <SelectItem value="Management Studies">Management Studies</SelectItem>
                     <SelectItem value="Computer Applications">Computer Applications</SelectItem>
-                    <SelectItem value="Maths">Maths</SelectItem>
+                    <SelectItem value="Maths">Mathematics</SelectItem>
                     <SelectItem value="Physics">Physics</SelectItem>
                     <SelectItem value="Chemistry">Chemistry</SelectItem>
                     <SelectItem value="English">English</SelectItem>
@@ -339,7 +339,7 @@ export default function RegisterExaminer() {
                     <FormikErrorField name='collegePlace' formikState={fs} />
                   </div>
                   <div className="space-y-2 grow">
-                    <Label htmlFor="collegePinCode">College Pincode</Label>
+                    <Label htmlFor="collegePinCode">Pincode</Label>
                     <Input
                       name="collegePinCode"
                       value={fs.values.collegePinCode}
