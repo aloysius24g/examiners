@@ -214,7 +214,7 @@ export async function getTsUser(id: number): Promise<Result<TsUserDetailedDTO, S
 
   const resDto = ({
     bio: {
-      salutation: bioRequest.value.name,
+      salutation: bioRequest.value.salutaion,
       name: bioRequest.value.name,
       aicteNo: bioRequest.value.aicteNo,
       annaUnivNo: bioRequest.value.annaUnivNo,

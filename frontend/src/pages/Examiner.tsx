@@ -221,7 +221,7 @@ export default function Examiner() {
       </div>
       <dl className="grid grid-cols-[140px_1fr] gap-x-4 gap-y-3 px-8 border p-4 rounded-(--radius)">
         <dt className="text-sm text-muted-foreground">Name</dt>
-        <dd className="wrap-anywhere font-medium">{query.data.bio.name}</dd>
+        <dd className="wrap-anywhere font-medium">{query.data.bio.salutation}. {query.data.bio.name}</dd>
 
         <dt className="text-sm text-muted-foreground">AICTE Number</dt>
         <dd>{query.data?.bio.aicteNo ?? 'Nil'}</dd>
