@@ -27,7 +27,8 @@ export const tsUserRegistrationSchema = z.object({
   annaUnivNo: z.string()
     .trim()
     .regex(/^\d+$/, "Anna university number must contain only numbers")
-    .min(10, 'Anna university number should be atleast 10 char long')
+    .min(9, 'Anna university number should be atleast 9 char long')
+    .max(10, 'Anna university number should not exceed 10 char long')
     .nullable(),
   yearOfExperience: z.number()
     .min(0, 'year of experience should be greater than or equal to 0')
