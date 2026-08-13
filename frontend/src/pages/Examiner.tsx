@@ -263,10 +263,10 @@ export default function Examiner() {
         <dt className="text-sm text-muted-foreground">College Name</dt>
         <dd className='wrap-anywhere'>{query.data.workPlace.collegeName}</dd>
 
-        <dt className="text-sm text-muted-foreground">College Place</dt>
+        <dt className="text-sm text-muted-foreground">Place of the College</dt>
         <dd className='wrap-anywhere'>{query.data.workPlace.collegePlace}</dd>
 
-        <dt className="text-sm text-muted-foreground">College Pincode</dt>
+        <dt className="text-sm text-muted-foreground">Pincode</dt>
         <dd>{query.data.workPlace.collegePinCode}</dd>
 
         <dt className="text-sm text-muted-foreground">Id Card Image</dt>
