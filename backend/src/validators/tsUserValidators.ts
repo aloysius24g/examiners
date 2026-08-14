@@ -22,13 +22,13 @@ export const tsUserRegistrationSchema = z.object({
   aicteNo: z.string()
     .trim()
     .regex(/^\d+$/, "AICTE number must contain only numbers")
-    .length(9, "AICTE number must be 10 character long")
+    .min(9, "AICTE number must be atleast 9 character long")
+    .max(10, "AICTE number should not exceed 10 character")
     .nullable(),
   annaUnivNo: z.string()
     .trim()
     .regex(/^\d+$/, "Anna university number must contain only numbers")
-    .min(9, 'Anna university number should be atleast 9 char long')
-    .max(10, 'Anna university number should not exceed 10 char long')
+    .length(10, 'Anna university number should be 10 char long')
     .nullable(),
   yearOfExperience: z.number()
     .min(0, 'year of experience should be greater than or equal to 0')
