@@ -312,7 +312,7 @@ export default function Examiner() {
           `Last Updated: ${dayjs.utc(query.data.theoryCoursesLastUpdated).local().format('D MMMM YYYY')}`
         }
       </div>
-      <div className="flex gap-2 flex-wrap px-8 border p-4 rounded-(--radius)">
+      <div className="flex gap-2 flex-wrap px-8 border p-4 rounded-(--radius) overflow-x-scroll">
         {query.data.theoryHandled.map(c => 
           <Badge key={c.courseCode} className="p-3" variant='secondary'>
             {`${c.courseCode} | ${c.courseTitle}`}
@@ -336,7 +336,7 @@ export default function Examiner() {
           `Last Updated: ${dayjs.utc(query.data.practicalCoursesLastUpdated).local().format('D MMMM YYYY')}`
         }
       </div>
-      <div className="flex gap-2 flex-wrap px-8 border p-4 rounded-(--radius)">
+      <div className="flex gap-2 flex-wrap px-8 border p-4 rounded-(--radius) overflow-x-scroll">
         {query.data.practicalHandled.map(c => 
           <Badge key={c.courseCode} className="p-3" variant='secondary'>
             {`${c.courseCode} | ${c.courseTitle}`}
