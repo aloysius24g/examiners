@@ -96,7 +96,7 @@ export default function RegisterExaminer() {
         success: 'Registered Successfully.',
         error: (e) => e.response?.data?.message ?? 'something went wrong',
       })
-      mutP.then(() => navigate('/login/examiner'))
+      await mutP.then(() => navigate('/login/examiner'))
     }
   });
   return (
@@ -492,7 +492,7 @@ export default function RegisterExaminer() {
 
               <Button
                 type="submit"
-                disabled={mut.isPending}
+                disabled={fs.isSubmitting}
               >
                 Register
               </Button>
