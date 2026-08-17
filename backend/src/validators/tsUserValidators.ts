@@ -23,7 +23,7 @@ export const tsUserRegistrationSchema = z.object({
     .trim()
     .regex(/^\d+$/, "AICTE number must contain only numbers")
     .min(9, "AICTE number must be atleast 9 character long")
-    .max(10, "AICTE number should not exceed 10 character")
+    .max(12, "AICTE number should not exceed 12 character")
     .nullable(),
   annaUnivNo: z.string()
     .trim()
