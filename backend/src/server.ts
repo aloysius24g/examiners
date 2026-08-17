@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises'
 import express, { NextFunction, Request, Response } from "express";
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
@@ -38,7 +39,7 @@ const diskStorage = multer({
       return cb(new ValidationError('Image must be of type png or jpeg'))
     }
 
-    if(['png', 'jpeg', 'jpg'].includes(path.extname(file.originalname))) {
+    if(! ['.png', '.jpeg', '.jpg'].includes(path.extname(file.originalname).toLowerCase())) {
       return cb(new ValidationError('Image must be of type png or jpeg'))
     }
     cb(null, true);
@@ -119,6 +120,9 @@ app.post('/id-card-image', imgAndOtpRateLimiter, diskStorage.single('file'), asy
   const response = await createIdCardImage(fileName);
 
   if(! response.success) {
+    if(req.file?.path) {
+      await fs.unlink(req.file.path)
+    }
     switch (response.error.cause) {
       case "DuplicateRecord":
         throw new ConflictError('Image name conflict.');
@@ -137,8 +141,11 @@ app.post('/id-card-image', imgAndOtpRateLimiter, diskStorage.single('file'), asy
   });
 })
 
+const idCardImageDir = path.resolve('id-card-images');
 app.get('/id-card-image/:fileName', (req, res) => {
-  return res.sendFile(path.join(path.resolve('.'), 'id-card-images', req.params.fileName));
+  return res.sendFile(req.params.fileName, {
+    root: idCardImageDir
+  });
 })
 
 RegisterRoutes(app);
