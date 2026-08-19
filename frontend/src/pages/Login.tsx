@@ -71,7 +71,7 @@ export function ExaminerLoginPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Eg: abc@sxcce.edu.in"
+                placeholder="Eg: john@gmail.com"
                 value={fs.values.email}
                 onChange={fs.handleChange}
                 onBlur={fs.handleBlur}
