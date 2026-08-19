@@ -1,4 +1,4 @@
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useUserContext } from "@/components/user-context";
 import apiClient from "@/lib/axiosClient";
 import { abilitiesFor } from "@/permissions";
@@ -8,14 +8,17 @@ import { NavLink, useNavigate } from "react-router-dom";
 
 
 import type { TsUserListDTO } from '../../../backend/src/controllers/tsUserController';
-import { SidebarOpen } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { useFormik } from "formik";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useMediaQuery } from "react-responsive";
+import { cn } from "@/lib/utils";
 
 export default function ExaminersList() {
+  const isMobile = useMediaQuery({ maxWidth: 767 });
   const navigate = useNavigate();
 
   const userContext = useUserContext();
@@ -129,23 +132,26 @@ export default function ExaminersList() {
       </CardFooter>
     </Card>
 
-    <h1>Examiner</h1>
-    <Card>
-      <CardContent className="grid grid-cols-6 gap-4 items-center">
+    <h1>Examiners</h1>
+    <Card className={cn(
+      'block',
+      isMobile && 'hidden'
+    )} >
+      <CardContent className="sm:grid sm:grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr] grid-cols-1">
         <p className="text-xs text-muted-foreground">Name</p>
         <p className="text-xs text-muted-foreground">Department</p>
         <p className="text-xs text-muted-foreground">Designation</p>
         <p className="text-xs text-muted-foreground">College</p>
         <p className="text-xs text-muted-foreground">Experience</p>
-        <p className="text-xs text-muted-foreground">Open</p>
+        <p className="text-xs text-muted-foreground flex justify-end">Open</p>
       </CardContent>
     </Card>
       {memoizedFilteredExaminers.map((examiner) => (
-        <Card key={examiner.id} className="py-1">
-          <CardContent className="py-1 flex flex-col gap-3">
+        <Card key={examiner.id}>
+          <CardHeader>
           <div className="flex gap-2">
             { (examiner.userVerified !== undefined) &&
-             <Badge className={examiner.userVerified ? 'bg-green-400' : 'bg-yellow-400'} >
+             <Badge className={examiner.userVerified ? 'bg-green-400' : 'bg-yellow-300'} >
               {examiner.userVerified ? 'Verified' : 'Not Verified'}
              </Badge>
             }
@@ -156,38 +162,41 @@ export default function ExaminersList() {
            </Badge>
           }
           </div>
-            <div className="grid grid-cols-6 gap-4 items-center">
-              <div>
-                <p className="font-medium">{examiner.bio.name}</p>
-              </div>
+          </CardHeader>
+          <CardContent className={
+              cn(
+                "grid grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr]",
+                isMobile && 'grid-cols-[1fr_2fr]'
+              )
+          } >
+              {isMobile && <p className="flex items-center">Name</p>}
+              <p className="flex items-center">{examiner.bio.name}</p>
 
-              <div>
-                <p>{examiner.bio.department}</p>
-              </div>
+              {isMobile && <p className="flex items-center">Department</p>}
+              <p className="flex items-center">{examiner.bio.department}</p>
 
-              <div>
-                <p>{examiner.workPlace.designation}</p>
-              </div>
+              {isMobile && <p className="flex items-center">Designation</p>}
+              <p className="flex items-center">{examiner.workPlace.designation}</p>
 
-              <div>
-                <p>{examiner.workPlace.collegeName}</p>
-              </div>
+              {isMobile && <p className="flex items-center">College Name</p>}
+              <p className="flex items-center">{examiner.workPlace.collegeName}</p>
 
-              <div>
-                <p>{examiner.bio.yearOfExperience} years</p>
-              </div>
+              {isMobile && <p className="flex items-center">Year of Experience</p>}
+              <p className="flex items-center">{examiner.bio.yearOfExperience} years</p>
 
-              <div>
+              {isMobile && <p className="flex items-center">Open</p>}
               <NavLink
                 //target="_blank"
                 key={examiner.id}
                 to={`/examiners/${examiner.id}`}
-                className="block px-3 py-2 rounded-md text-sm"
-              >
-                <SidebarOpen />
+                className={
+                  cn(
+                    'flex flex-col py-2 rounded-md text-sm items-center cursor-pointer border',
+                    isMobile && 'items-start border-none'
+                  )
+                }>
+                <ExternalLink className="text-center" />
               </NavLink>
-              </div>
-            </div>
           </CardContent>
         </Card>
       ))}

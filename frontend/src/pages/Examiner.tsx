@@ -86,7 +86,7 @@ export default function Examiner() {
     {/* Private Fields */}
     <div className="flex gap-2">
       { ability.can('view', 'examinerAuthenticity') && (query.data.userVerified !== undefined) &&
-       <Badge className={query.data.userVerified ? 'bg-green-400' : 'bg-yellow-400'} >
+       <Badge className={query.data.userVerified ? 'bg-green-400' : 'bg-yellow-300'} >
         {query.data.userVerified ? 'Verified' : 'Not Verified'}
        </Badge>
       }
