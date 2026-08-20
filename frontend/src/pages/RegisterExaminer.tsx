@@ -472,14 +472,14 @@ export default function RegisterExaminer() {
                   />
 
                   <div>
-                    <Label htmlFor="acknoledgement">Acknoledgement</Label>
+                    <Label htmlFor="acknowledgement">Acknowledgement</Label>
 
                     <p className="text-sm text-muted-foreground">
                     The details provided in this form are correct and error free. The appointment will be based on experience and expertise.
                     </p>
                   </div>
                 </div>
-                <FormikErrorField name='acknoledgement' formikState={fs} />
+                <FormikErrorField name='acknowledgement' formikState={fs} />
 
               </div>
             </section>
