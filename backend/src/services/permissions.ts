@@ -98,6 +98,8 @@ export function abilitiesFor(user: UserContext | null) {
       ability.can('update', 'examinerPreference')
       ability.can('update', 'examinerAuthenticity')
       ability.can('update', 'officerActiveStatus')
+      // for correcting aicte and fin numbers
+      ability.can('update', 'personalInformation')
     }
     return ability.build({detectSubjectType: obj => obj.kind});
   }
