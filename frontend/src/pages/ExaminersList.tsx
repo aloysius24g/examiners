@@ -56,37 +56,51 @@ export default function ExaminersList() {
     if(! examinerListQuery.data) {
       return [];
     }
+    let isFilterPropsUsed = false;
+    const filterProps = Object.fromEntries(
+      Object.entries(fs.values).map(([key, value]) => {
+        const trimedValue = value.trim();
+        if(trimedValue !== '') {
+          isFilterPropsUsed = true;
+        }
+        return [key, trimedValue];
+      })
+    )
+
+    if(! isFilterPropsUsed) {
+      return examinerListQuery.data.sort((e1, e2) => e2.id - e1.id);
+    }
     const filtered =  examinerListQuery.data.filter(examiner => {
       // just if guard conditions and return false if any fail.
 
       // name filtering
       if(
-        ! examiner.bio.name.toLowerCase().includes(fs.values.name.toLowerCase())
+        ! examiner.bio.name.toLowerCase().includes(filterProps.name.toLowerCase())
       ) {
         return false;
       }
 
       // department filtering
       if(
-        ! examiner.bio.department.toLowerCase().includes(fs.values.department.toLowerCase())
+        ! examiner.bio.department.toLowerCase().includes(filterProps.department.toLowerCase())
       ) {
         return false;
       }
 
       // code filtering
       if(
-        fs.values.courseCode !== '' &&
-        ! examiner.theoryHandled.some(th => th.courseCode.toLowerCase().includes(fs.values.courseCode.toLowerCase())) &&
-        ! examiner.practicalHandled.some(th => th.courseCode.toLowerCase().includes(fs.values.courseCode.toLowerCase()))
+        filterProps.courseCode !== '' &&
+        ! examiner.theoryHandled.some(th => th.courseCode.toLowerCase().includes(filterProps.courseCode.toLowerCase())) &&
+        ! examiner.practicalHandled.some(th => th.courseCode.toLowerCase().includes(filterProps.courseCode.toLowerCase()))
       ) {
         return false;
       }
 
       // Title filtering
       if(
-        fs.values.courseTitle !== '' &&
-        ! examiner.theoryHandled.some(th => th.courseTitle.toLowerCase().includes(fs.values.courseTitle.toLowerCase())) &&
-        ! examiner.practicalHandled.some(th => th.courseTitle.toLowerCase().includes(fs.values.courseTitle.toLowerCase()))
+        filterProps.courseTitle !== '' &&
+        ! examiner.theoryHandled.some(th => th.courseTitle.toLowerCase().includes(filterProps.courseTitle.toLowerCase())) &&
+        ! examiner.practicalHandled.some(th => th.courseTitle.toLowerCase().includes(filterProps.courseTitle.toLowerCase()))
       ) {
         return false;
       }
@@ -94,7 +108,7 @@ export default function ExaminersList() {
       return true;
     });
 
-    const sorted = filtered.sort((e1, e2) => e2.id - e1.id)
+    const sorted = filtered.sort((e1, e2) => e2.bio.yearOfExperience - e1.bio.yearOfExperience)
 
     return sorted;
 
