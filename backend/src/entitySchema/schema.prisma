@@ -63,6 +63,7 @@ model TsUser {
   theoriesHandled TheoryHandled[]
   practicalsHandled PracticalHandled[]
   collegesWorked CollegeWorked[]
+  qpSettingDuties QPSettingDuties[]
 
   @@index([userId])
 }
@@ -133,4 +134,14 @@ model IdCardImage {
   forFacultyProof CollegeWorked?
   
   @@index([fileName])
+}
+
+model QPSettingDuties {
+  userId Int
+  tsUser TsUser @relation(fields: [userId], references: [userId])
+  sem   String @db.VarChar(30)
+  year String @db.Char(4)
+  count Int
+
+  @@id([userId, sem, year])
 }
