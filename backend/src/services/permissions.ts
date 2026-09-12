@@ -1,11 +1,13 @@
 import { AbilityBuilder, createMongoAbility, InferSubjects, MongoAbility } from "@casl/ability";
 import { UserContext } from "../utils/userContext.js";
+import { ExaminerRole } from "../../generated/prisma/enums.js";
 
 type Actions = 'view' | 'create' | 'update' | 'delete'
 
 interface ExaminerP {
   kind: 'examiner'
   id: number
+  preferredFor: ExaminerRole[]
 }
 interface OfficerP {
   kind: 'officer'
@@ -50,6 +52,7 @@ type Subjects =
 | 'examinerPrivateFields'
 | 'examinerPreference'
 | 'examinerAuthenticity'
+| 'qpSettingDuties'
 | ComplexSub
 
 //type AppAbility = MongoAbility<[Actions, Sub]>
@@ -85,8 +88,13 @@ export function abilitiesFor(user: UserContext | null) {
 
   if(user.accountType === 'NS') {
     ability.can('view', 'officer', {id: user.id})
-    ability.can('view', 'examiner')
     ability.can('view', 'examinerList')
+    if(user?.roleName === 'dycoe-exam') {
+      ability.can('view', 'examiner', {preferredFor: {$in: ['examinerPractical']}})
+    }
+    if(user?.roleName === 'dycoe-valuation') {
+      ability.can('view', 'examiner', {preferredFor: {$in: ['examinerValuation']}})
+    }
     if(user?.roleName === 'coe') {
       ability.can('create', 'officer')
       ability.can('view', 'officer')
@@ -94,9 +102,11 @@ export function abilitiesFor(user: UserContext | null) {
       ability.can('view', 'examinerPrivateFields')
       ability.can('view', 'examinerPreference')
       ability.can('view', 'examinerAuthenticity')
+      ability.can('view', 'qpSettingDuties')
       ability.can('view', 'officerActiveStatus')
       ability.can('update', 'examinerPreference')
       ability.can('update', 'examinerAuthenticity')
+      ability.can('update', 'qpSettingDuties')
       ability.can('update', 'officerActiveStatus')
       // for correcting aicte and fin numbers
       ability.can('update', 'personalInformation')

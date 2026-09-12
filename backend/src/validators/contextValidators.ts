@@ -5,5 +5,5 @@ export const contextSchema = z.object({
   name: z.string(),
   id: z.number(),
   accountType: z.enum(['TS', 'NS'], 'Invalid Account type.'),
-  roleName: z.enum(['coe', 'assistant']).optional()
+  roleName: z.enum(['coe', 'assistant', 'dycoe-valuation', 'dycoe-exam']).optional()
 })
