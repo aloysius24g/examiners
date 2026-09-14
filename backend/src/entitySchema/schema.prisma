@@ -136,12 +136,16 @@ model IdCardImage {
   @@index([fileName])
 }
 
+enum Sem {
+  odd
+  even
+}
+
 model QPSettingDuties {
+  id String @id @default(cuid())
   userId Int
   tsUser TsUser @relation(fields: [userId], references: [userId])
-  sem   String @db.VarChar(30)
+  sem   Sem
   year String @db.Char(4)
-  count Int
-
-  @@id([userId, sem, year])
+  courseCode String @db.VarChar(10)
 }
