@@ -52,7 +52,7 @@ type Subjects =
 | 'examinerPrivateFields'
 | 'examinerPreference'
 | 'examinerAuthenticity'
-| 'qpSettingDuties'
+| 'qpSettingDuty'
 | ComplexSub
 
 //type AppAbility = MongoAbility<[Actions, Sub]>
@@ -97,16 +97,17 @@ export function abilitiesFor(user: UserContext | null) {
     }
     if(user?.roleName === 'coe') {
       ability.can('create', 'officer')
+      ability.can('create', 'qpSettingDuty')
       ability.can('view', 'officer')
       ability.can('view', 'officerList')
       ability.can('view', 'examinerPrivateFields')
       ability.can('view', 'examinerPreference')
       ability.can('view', 'examinerAuthenticity')
-      ability.can('view', 'qpSettingDuties')
+      ability.can('view', 'qpSettingDuty')
       ability.can('view', 'officerActiveStatus')
       ability.can('update', 'examinerPreference')
       ability.can('update', 'examinerAuthenticity')
-      ability.can('update', 'qpSettingDuties')
+      ability.can('delete', 'qpSettingDuty')
       ability.can('update', 'officerActiveStatus')
       // for correcting aicte and fin numbers
       ability.can('update', 'personalInformation')
