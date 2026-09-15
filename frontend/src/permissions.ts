@@ -8,7 +8,7 @@ type Actions = 'view' | 'create' | 'update' | 'delete'
 interface ExaminerP {
   kind: 'examiner'
   id: number
-  preferredFor: ExaminerRole[]
+  preferredFor?: ExaminerRole[]
 }
 interface OfficerP {
   kind: 'officer'
@@ -101,6 +101,7 @@ export function abilitiesFor(user: UserContext | null) {
       ability.can('create', 'qpSettingDuty')
       ability.can('view', 'officer')
       ability.can('view', 'officerList')
+      ability.can('view', 'examiner')
       ability.can('view', 'examinerPrivateFields')
       ability.can('view', 'examinerPreference')
       ability.can('view', 'examinerAuthenticity')

@@ -1,4 +1,4 @@
-import { ContactDTO, ContactDTOWithOTP, PasswordResetDTO, TsUserDetailedDTO, TsUserListDTO, TsUserMinimalDTO, TsUserRegistrationDTO, UpdatablePersonalInfoDTO, WorkPlaceDTO } from "../controllers/tsUserController.js";
+import { ContactDTO, ContactDTOWithOTP, PasswordResetDTO, QPDutyDTO, TsUserDetailedDTO, TsUserListDTO, TsUserMinimalDTO, TsUserRegistrationDTO, UpdatablePersonalInfoDTO, WorkPlaceDTO } from "../controllers/tsUserController.js";
 import * as otpService from '../services/otpService.js';
 import { isExistNotUsedIdCardImage } from "../dal/idCardImageDal.js"
 import * as tsUserDal from "../dal/tsUserDal.js";
@@ -11,6 +11,8 @@ import bcrypt from "bcrypt";
 import { abilitiesFor } from "./permissions.js";
 import { CourseDTO } from "../controllers/courseController.js";
 import { courseListSchema } from "../validators/courseValidators.js";
+import { qpSettingDutySchema } from "../validators/dutyValidators.js";
+import dutyDal from "../dal/dutyDal.js";
 
 export async function registerTsUser(params: TsUserRegistrationDTO): Promise<Result<TsUserMinimalDTO, ServiceError>> {
 
@@ -212,7 +214,7 @@ export async function getTsUser(id: number): Promise<Result<TsUserDetailedDTO, S
     }
   }
 
-  const resDto = ({
+  const resDto: TsUserDetailedDTO = ({
     bio: {
       salutation: bioRequest.value.salutaion,
       name: bioRequest.value.name,
@@ -240,6 +242,12 @@ export async function getTsUser(id: number): Promise<Result<TsUserDetailedDTO, S
     theoryCoursesLastUpdated: bioRequest.value.theoryCoursesLastUpdated?.toISOString() ?? null,
     practicalCoursesLastUpdated: bioRequest.value.practicalCoursesLastUpdated?.toISOString() ?? null, 
     ownPreferences: bioRequest.value.ownPreferences,
+    ...(ability.can('view', 'qpSettingDuty') ?
+        {
+          qpSettingDuties: bioRequest.value.qpSettingDuties
+        }
+        : {}
+       ),
     ...(ability.can('view', 'examinerPrivateFields') ?
         {
           userVerified: bioRequest.value.userVerified, 
@@ -253,7 +261,7 @@ export async function getTsUser(id: number): Promise<Result<TsUserDetailedDTO, S
         }
         : {}
        )
-  } satisfies TsUserDetailedDTO);
+  });
 
   return success(resDto);
 }
@@ -323,6 +331,12 @@ export async function getTsUsers():
       theoryHandled: raw.theoriesHandled.
         filter(p => p.chosenTime.getTime() === theoryLatestUpdateTime?.getTime()).
         map(p => ({courseTitle: p.courseTitle, courseCode: p.courseCode})),
+
+      ...(ability.can('view', 'qpSettingDuty') ?
+          {
+            qpSettingDutiesCount: raw._count.qpSettingDuties // lazy writing on dal layer lol
+          } : {}
+         ),
       
       // internal fields
       ...(ability.can('view', 'examinerPrivateFields') ?
@@ -821,3 +835,97 @@ export async function updateOwnPreferences(id: number, preferences: string[]):
 
   return success(updateRes.value);
 } 
+
+export async function assignQPTask(userId: number, duty: Omit<QPDutyDTO, 'id'>):
+  Promise<Result<QPDutyDTO, ServiceError>>{
+
+  // check if the input domain object is valid.
+  const safeParams = qpSettingDutySchema.safeParse(duty);
+
+  if(! safeParams.success) {
+    return error({
+      cause: 'ValidationError',
+      message: safeParams.error.issues.map(i => i.message).join('\n')
+    })
+  }
+
+  // check user permissions
+  const userContext = getUserContext();
+  const ability = abilitiesFor(userContext);
+  if(ability.cannot('create', 'qpSettingDuty')) {
+    return error({
+      cause: 'PermissionError',
+      message: 'User has not enough permission to assign qp setting dutie.'
+    })
+  }
+
+  // dal mutation
+  const mutRes = await dutyDal.createQPSettingDuty(userId, safeParams.data);
+  if(! mutRes.success) {
+    switch(mutRes.error.cause) {
+      case "ForeignKeyViolation":
+      case "RecordNotFound":
+      case "ValidationError":
+        return error({
+        cause: 'ValidationError',
+        message: mutRes.error.message
+      })
+      case "KnownRequestError":
+        return error({
+          cause: 'BussinessConstraintViolation',
+          message: mutRes.error.message
+        })
+      case "DuplicateRecord":
+      case "UnknownRequestError":
+      case "DbUnAvailableError":
+      return error({
+        cause: 'DbError',
+        message: mutRes.error.message
+      })
+    }
+  }
+
+  return success(mutRes.value);
+}
+
+export async function deleteQPTask(userId: number, dutyId: string): 
+  Promise<Result<string, ServiceError>> {
+
+  // check user permissions
+  const userContext = getUserContext();
+  const ability = abilitiesFor(userContext);
+  if(ability.cannot('delete', 'qpSettingDuty')) {
+    return error({
+      cause: 'PermissionError',
+      message: 'User has not enough permission to assign qp setting dutie.'
+    })
+  }
+
+  // dal mutation
+  const mutRes = await dutyDal.deleteQPSettingDuty(userId, dutyId);
+  if(! mutRes.success) {
+    switch(mutRes.error.cause) {
+      case "KnownRequestError":
+        return error({
+          cause: 'BussinessConstraintViolation',
+          message: mutRes.error.message
+        })
+      case "RecordNotFound":
+      case "ForeignKeyViolation":
+      case "ValidationError":
+        return error({
+        cause: 'ValidationError',
+        message: mutRes.error.message
+      })
+      case "DuplicateRecord":
+      case "UnknownRequestError":
+      case "DbUnAvailableError":
+      return error({
+        cause: 'DbError',
+        message: mutRes.error.message
+      })
+    }
+  }
+
+  return success(mutRes.value.id);
+}

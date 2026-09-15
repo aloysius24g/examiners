@@ -1,4 +1,4 @@
-import { AccountType, ExaminerRole } from '../../generated/prisma/enums.js';
+import { ExaminerRole } from '../../generated/prisma/enums.js';
 import db from '../utils/database.js';
 import prismaErrorAsValue from '../utils/prismaErrorAsValue.js';
 import { success } from '../utils/result.js';
@@ -123,7 +123,8 @@ async function getTsUserBio(id: number) {
             recordedAt: "desc"
           },
           take: 1
-        }
+        },
+        qpSettingDuties: true
       }
     }); 
 
@@ -156,7 +157,8 @@ async function getTsUserBio(id: number) {
       ownPreferences: tsUser.ownPreferences.map(p => p.preferredFor),
       ugSpecialization: tsUser.ugSpecialization,
       pgSpecialization: tsUser.pgSpecialization,
-      phdSpecialization: tsUser.phdSpecialization
+      phdSpecialization: tsUser.phdSpecialization,
+      qpSettingDuties: tsUser.qpSettingDuties
     });
   }catch(e) {
     return prismaErrorAsValue(e);
@@ -596,6 +598,11 @@ export async function getTsUsers() {
             recordedAt: 'desc',
           },
           take: 1
+        },
+        _count: {
+          select : {
+            qpSettingDuties: true
+          }
         }
       }
     });

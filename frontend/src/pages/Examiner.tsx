@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import utc from "dayjs/plugin/utc";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Delete, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -20,8 +20,19 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import apiClient from "@/lib/axiosClient";
 import { queryClient } from "@/lib/queryClient";
 import { MultiSelect } from "@/components/ui/multi-select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
-import type { ContactDTO, WorkPlaceDTO } from '../../../backend/src/controllers/tsUserController';
+import type { ContactDTO, WorkPlaceDTO, QPDutyDTO } from '../../../backend/src/controllers/tsUserController';
 import type { TsUserDetailedDTO, UpdatablePersonalInfoDTO } from '../../../backend/src/controllers/tsUserController';
 import type { CourseDTO } from "../../../backend/src/controllers/courseController";
 import { Switch } from "@/components/ui/switch";
@@ -57,6 +68,13 @@ export default function Examiner() {
   const blacklistedMut = useMutation({
     mutationFn: async (v: {userBlacklisted: boolean}) => {
       const res = await apiClient.put<{userBlacklisted: boolean}>(`/examiners/${id}/blacklisted`, v)
+      return res.data;
+    } 
+  })
+
+  const dutyDeleteMut = useMutation({
+    mutationFn: async (v: {dutyId: string}) => {
+      const res = await apiClient.delete<QPDutyDTO>(`/examiners/${id}/qp-setting-duties/${v.dutyId}`)
       return res.data;
     } 
   })
@@ -183,6 +201,60 @@ export default function Examiner() {
               }
             </Badge>
           )}
+        </div>
+      </section>
+    }
+
+    {/*Question Paper Setting Assignment*/}
+    { ability.can('view', 'qpSettingDuty') && (query.data.qpSettingDuties) &&
+      <section className="space-y-4 max-w-260 mx-auto">
+        <div className="flex justify-between">
+          <span className="text-lg">
+            Question Paper Setting Duties
+          </span>
+          { ability.can('create', 'qpSettingDuty') &&
+            <AssignQPSettingDutyDialog />
+          }
+        </div>
+
+        <div className="p-8 border rounded-(--radius) flex flex-col gap-2 max-h-[30vh] overflow-y-auto">
+          {
+            (query.data.qpSettingDuties.length === 0)
+            && <div className='text-destructive'>no duty assigned</div>
+          }
+          {query.data.qpSettingDuties && query.data.qpSettingDuties
+            .sort((a,b) => {
+              const res = Number(b.year) - Number(a.year)
+              // same year
+              if(res === 0) {
+                return a.sem > b.sem ? -1 : 1;
+              }
+              return res;
+            })
+            .map(duty => 
+              <div key={duty.id} className="p-3 flex justify-between bg-secondary rounded-(--radius)">
+                <div>
+                  {duty.sem === 'odd' && 'Nov./Dec.'}
+                  {duty.sem === 'even' && 'April/May'}
+                </div>
+                <div>
+                  {duty.year}
+                </div>
+                <div>
+                  {duty.courseCode}
+                </div>
+                <ConfirmPopup confirmCb={() => {
+                  const mP = dutyDeleteMut.mutateAsync({dutyId: duty.id});
+                  toast.promise(mP, {
+                    loading: 'deleting duty.',
+                    success: 'duty deleted.',
+                    error: (e) => e.response?.data?.message ?? 'Cant delete Duty.',
+                  })
+                  mP.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}))
+                }} />
+              </div>
+            )
+          }
         </div>
       </section>
     }
@@ -1047,6 +1119,95 @@ function PreferencesEditor() {
   </Dialog>
 }
 
+function AssignQPSettingDutyDialog() {
+
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [semCycle, setSemCycle] = useState<string>(new Date().getMonth() > 6 ? 'odd': 'even');
+  const [courseCode, setCourseCode] = useState<string>('');
+
+  const { id } = useParams();
+
+  const assignDutyMut = useMutation({
+    mutationFn: async (v: Omit<QPDutyDTO, 'id'>) => {
+      const res = await apiClient.post<QPDutyDTO>(`/examiners/${id}/qp-setting-duties`, v);
+      return res.data;
+    } 
+  })
+
+  const handleSubmit = () => {
+    const mutPromise = assignDutyMut.mutateAsync({
+      year: year.toString(), 
+      sem: semCycle,
+      courseCode: courseCode
+    });
+    toast.promise(mutPromise, {
+      loading: 'Assigning.',
+      success: 'Assigned.',
+      error: (e) => e.response?.data?.message ?? 'something went wrong, cant assign duty.',
+    })
+    mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
+    mutPromise.then(() => setIsEditorOpen(false));
+  }
+
+  return <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen} >
+    <DialogTrigger asChild>
+        <Button>
+          <Pencil/>
+          Assign
+        </Button>
+    </DialogTrigger>
+    <DialogContent className="sm:max-w-[50vw]">
+      <DialogHeader>
+        <DialogTitle>
+          Assign Duty
+        </DialogTitle>
+      </DialogHeader>
+      <form className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar"
+        onSubmit={e => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+      >
+        <Label htmlFor=''>Semester Cycle</Label>
+        <Select name='semCycle' value={semCycle} onValueChange={setSemCycle}>
+          <SelectTrigger id='semCycle'>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='odd'>
+              Nov./Dec.
+            </SelectItem>
+            <SelectItem value='even'>
+              April/May
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <Label htmlFor='year'>Year</Label>
+        <Input
+          id='year'
+          type='number'
+          value={year === 0 ? NaN : year}
+          onChange={e => setYear(Number(e.target.value))}
+        >
+        </Input>
+        <Label htmlFor='courseCode'>Course Code</Label>
+        <Input
+          id='courseCode'
+          value={courseCode}
+          onChange={e => setCourseCode(e.target.value.toUpperCase())}
+        >
+        </Input>
+      </form>
+      <DialogFooter>
+        <Button onClick={() => handleSubmit()} disabled={assignDutyMut.isPending}>
+          Save
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+}
+
 function OwnPreferencesEditor() {
 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -1129,4 +1290,35 @@ function OwnPreferencesEditor() {
       </DialogFooter>
     </DialogContent>
   </Dialog>
+}
+
+function ConfirmPopup({confirmCb}: {confirmCb: () => void}) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="destructive">Delete</Button>
+      </AlertDialogTrigger>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Duty</AlertDialogTitle>
+
+          <AlertDialogDescription>
+            This will delete the duty.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+          <AlertDialogAction
+            variant={'destructive'}
+            onClick={confirmCb}
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Path, Post, Put, Route } from "tsoa";
+import { Body, Controller, Delete, Get, Path, Post, Put, Route } from "tsoa";
 import * as tsUserService from "../services/tsUserService.js";
 import { ConflictError, InternalServerError, NotFoundError, UnauthorizedError, ValidationError } from "../utils/httpErrors.js";
 import { CourseDTO } from "./courseController.js";
@@ -39,6 +39,13 @@ type TsUserInternalFields = {
   preferences: string[]
 }
 
+export type QPDutyDTO = {
+  id: string,
+  sem: string,
+  year: string,
+  courseCode: string,
+}
+
 export type TsUserDetailedDTO = 
   Partial<TsUserInternalFields>
   & {
@@ -69,17 +76,20 @@ export type TsUserDetailedDTO =
     theoryHandled: CourseDTO[],
     practicalHandled: CourseDTO[],
     theoryCoursesLastUpdated: string | null,
-    practicalCoursesLastUpdated: string | null
+    practicalCoursesLastUpdated: string | null,
+    qpSettingDuties?: QPDutyDTO[]
   }
 
 export type TsUserListDTO = (
   Omit<
     TsUserDetailedDTO,
       "theoryCoursesLastUpdated"
+    | "qpSettingDuties"
     | "practicalCoursesLastUpdated"
     | "ownPreferences"
     | "bio"
   > & {
+    qpSettingDutiesCount?: number,
     id: number,
     bio : Omit<
       TsUserDetailedDTO["bio"], 
@@ -494,5 +504,57 @@ export class TsUserController extends Controller {
     }
 
     return undefined;
+  }
+
+  @Post('{id}/qp-setting-duties')
+  public async getQPSettingDuties(
+    @Path() id: number,
+    @Body() body: Omit<QPDutyDTO, 'id'>,
+  ) {
+    const createRes = await tsUserService.assignQPTask(id, body);
+
+    if (!createRes.success) {
+      switch (createRes.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(createRes.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(createRes.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(createRes.error.message);
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(createRes.error.message);
+      }
+    }
+
+    return createRes.value;
+  }
+
+  @Delete('{id}/qp-setting-duties/{dutyId}')
+  public async deleteQPSettingDuties(
+    @Path() id: number,
+    @Path() dutyId: string,
+  ) {
+    const deleteRes = await tsUserService.deleteQPTask(id, dutyId);
+
+    if (!deleteRes.success) {
+      switch (deleteRes.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(deleteRes.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(deleteRes.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(deleteRes.error.message);
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(deleteRes.error.message);
+      }
+    }
+
+    return deleteRes.value;
   }
 }
