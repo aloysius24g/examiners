@@ -22,7 +22,7 @@ export default function ExaminersList() {
   const navigate = useNavigate();
 
   const userContext = useUserContext();
-  //const ability = abilitiesFor(userContext.data)
+  const ability = abilitiesFor(userContext.data)
 
   useEffect(() => {
     const ability = abilitiesFor(userContext.data)
@@ -151,12 +151,20 @@ export default function ExaminersList() {
       'block',
       isMobile && 'hidden'
     )} >
-      <CardContent className="sm:grid sm:grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr] grid-cols-1">
+      <CardContent className={cn(
+          'grid',
+          ability.can('view', 'qpSettingDuty') && 'grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr_1fr]',
+          ability.cannot('view', 'qpSettingDuty') && 'grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr]',
+      )}
+      >
         <p className="text-xs text-muted-foreground">Name</p>
         <p className="text-xs text-muted-foreground">Department</p>
         <p className="text-xs text-muted-foreground">Designation</p>
         <p className="text-xs text-muted-foreground">College</p>
         <p className="text-xs text-muted-foreground">Experience</p>
+        {ability.can('view', 'qpSettingDuty') &&
+          <p className="text-xs text-muted-foreground flex justify-end">Qp Duty</p>
+        }
         <p className="text-xs text-muted-foreground flex justify-end">Open</p>
       </CardContent>
     </Card>
@@ -180,6 +188,7 @@ export default function ExaminersList() {
           <CardContent className={
               cn(
                 "grid grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr]",
+                ability.can('view', 'qpSettingDuty') && 'grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr_1fr]',
                 isMobile && 'grid-cols-[1fr_2fr]'
               )
           } >
@@ -197,6 +206,9 @@ export default function ExaminersList() {
 
               {isMobile && <p className="flex items-center">Year of Experience</p>}
               <p className="flex items-center">{examiner.bio.yearOfExperience} years</p>
+
+              {(isMobile && ability.can('view', 'qpSettingDuty')) && <p className="flex items-center">Qp Duty</p>}
+              {ability.can('view', 'qpSettingDuty') && <p className="flex items-center">{examiner.qpSettingDutiesCount} duties</p>}
 
               {isMobile && <p className="flex items-center">Open</p>}
               <NavLink
