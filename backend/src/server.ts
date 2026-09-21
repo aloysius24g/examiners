@@ -65,6 +65,12 @@ const imgAndOtpRateLimiter = rateLimit({
   message: "Too many request, please try again later."
 })
 
+const loginRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 10,
+  message: "Too many attempts, please try again later(5 mins)."
+})
+
 const app = express();
 
 // proxy settings to make rate limiter work correctly
@@ -80,8 +86,9 @@ app.use(express.json());
 app.use(cookieParser())
 
 // rate limiting
-app.use('/verification/email', imgAndOtpRateLimiter);
 app.use(rateLimiter);
+app.use('/verification/email', imgAndOtpRateLimiter);
+app.use('/session', loginRateLimiter);
 
 app.use((req: Request, _res: Response, next: NextFunction) => {
   const refreshToken = req.cookies.refreshToken;
