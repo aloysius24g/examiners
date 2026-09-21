@@ -123,7 +123,7 @@ export async function login(credentialParams: CredentialDTO):
       } satisfies NsUserMinimalDTO,
       envProvider.JWT_REFRESH_TOKEN_SEC,
       {
-        expiresIn: '30m'
+        expiresIn: '3h'
       }
     )
     return success({
