@@ -49,7 +49,7 @@ export function ExaminerLoginPage() {
       });
       apiCallPromise.then(v => navigate(`/examiners/${v.id}`));
       apiCallPromise.then(v => userContext.setData({
-        ...v, expires: new Date(Date.now() + 28 * 60 * 1000)
+        ...v, expires: new Date((Date.now() + 3 * 60 * 60 * 1000) - 5 * 60 * 1000)
       }));
     }
   });

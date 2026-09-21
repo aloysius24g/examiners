@@ -46,7 +46,7 @@ export class SessionController extends Controller {
       httpOnly: true,
       secure: ENV.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 30 * 60 * 1000
+      maxAge: 3 * 60 * 60 * 1000
     })
 
     return {

@@ -67,7 +67,7 @@ export async function login(credentialParams: CredentialDTO):
       } satisfies TsUserMinimalDTO,
       envProvider.JWT_REFRESH_TOKEN_SEC,
       {
-        expiresIn: '30m'
+        expiresIn: '3h'
       }
     ) as string
     return success({
