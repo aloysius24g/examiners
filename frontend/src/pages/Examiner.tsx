@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import utc from "dayjs/plugin/utc";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Copy, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -92,6 +92,12 @@ export default function Examiner() {
     }
   }, [userContext.data])
 
+  const copyDetailsAsCells = () => {
+    navigator.clipboard.writeText(
+      `${query.data?.bio.name}\t"${query.data?.workPlace.designation}\n${query.data?.workPlace.collegeName}\n${query.data?.workPlace.collegePlace}\n${query.data?.workPlace.collegePinCode}"\t${query.data?.contact.email}\t${query.data?.contact.phone}`
+    );
+  }
+
   if(query.isLoading) {
     return <h1>Loading...</h1>
   }
@@ -113,6 +119,12 @@ export default function Examiner() {
        <Badge variant="destructive" >
         Blacklisted
        </Badge>
+      }
+
+      { ability.can('view', 'examinerList') &&
+        <Button variant={'outline'} onClick={copyDetailsAsCells}>
+          <Copy />
+        </Button>
       }
     </div>
 
