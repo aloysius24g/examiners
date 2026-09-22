@@ -56,7 +56,7 @@ function wordCase(content: string) {
     }else {
       curFormattedChar = char.toLowerCase();
     }
-    if(char === ' ' || char === '.') {
+    if(char === ' ' || char === '.' || char === '\n') {
       isPrevSpace = true;
     }else {
       isPrevSpace = false;
