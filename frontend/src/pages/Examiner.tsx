@@ -56,7 +56,7 @@ function wordCase(content: string) {
     }else {
       curFormattedChar = char.toLowerCase();
     }
-    if(char === ' ' || char === '.' || char === '\n') {
+    if(char === ' ' || char === '.' || char === '\n' || char === '"') {
       isPrevSpace = true;
     }else {
       isPrevSpace = false;
@@ -114,8 +114,9 @@ export default function Examiner() {
   }, [userContext.data])
 
   const copyDetailsAsCells = () => {
-    const content = `${query.data?.bio.salutation}. ${query.data?.bio.name}\t"${query.data?.workPlace.designation}\nDepartment of ${query.data?.bio.department}\n${query.data?.workPlace.collegeName}\n${query.data?.workPlace.collegePlace}\n${query.data?.workPlace.collegePinCode}"\t${query.data?.contact.email}\t${query.data?.contact.phone}`
-    const formattedContent = wordCase(content);
+    const name = `${query.data?.bio.salutation}. ${query.data?.bio.name}`
+    const designation = `"${query.data?.workPlace.designation}\nDepartment of ${query.data?.bio.department}\n${query.data?.workPlace.collegeName}\n${query.data?.workPlace.collegePlace}\n${query.data?.workPlace.collegePinCode}"`
+    const formattedContent = `${wordCase(name)}\t${wordCase(designation)}\t${query.data?.contact.email}\t${query.data?.contact.phone}`;
 
     navigator.clipboard.writeText(formattedContent);
   }
