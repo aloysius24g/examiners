@@ -94,7 +94,7 @@ export default function Examiner() {
 
   const copyDetailsAsCells = () => {
     navigator.clipboard.writeText(
-      `${query.data?.bio.name}\t"${query.data?.workPlace.designation}\n${query.data?.workPlace.collegeName}\n${query.data?.workPlace.collegePlace}\n${query.data?.workPlace.collegePinCode}"\t${query.data?.contact.email}\t${query.data?.contact.phone}`
+      `${query.data?.bio.salutation}. ${query.data?.bio.name}\t"${query.data?.workPlace.designation}\nDepartment of ${query.data?.bio.department}\n${query.data?.workPlace.collegeName}\n${query.data?.workPlace.collegePlace}\n${query.data?.workPlace.collegePinCode}"\t${query.data?.contact.email}\t${query.data?.contact.phone}`
     );
   }
 
