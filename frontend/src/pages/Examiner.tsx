@@ -46,6 +46,27 @@ const prefOptions = [
   {label: 'Valuation Examiner', value:'examinerValuation'},
 ]
 
+function wordCase(content: string) {
+  let formatted = '';
+  let isPrevSpace = true;
+  let curFormattedChar = '';
+  for(const char of content) {
+    if(isPrevSpace) {
+      curFormattedChar = char.toUpperCase();
+    }else {
+      curFormattedChar = char.toLowerCase();
+    }
+    if(char === ' ' || char === '.') {
+      isPrevSpace = true;
+    }else {
+      isPrevSpace = false;
+    }
+
+    formatted = formatted + curFormattedChar
+  }
+  return formatted;
+}
+
 export default function Examiner() {
 
   const { id } = useParams();
@@ -93,9 +114,10 @@ export default function Examiner() {
   }, [userContext.data])
 
   const copyDetailsAsCells = () => {
-    navigator.clipboard.writeText(
-      `${query.data?.bio.salutation}. ${query.data?.bio.name}\t"${query.data?.workPlace.designation}\nDepartment of ${query.data?.bio.department}\n${query.data?.workPlace.collegeName}\n${query.data?.workPlace.collegePlace}\n${query.data?.workPlace.collegePinCode}"\t${query.data?.contact.email}\t${query.data?.contact.phone}`
-    );
+    const content = `${query.data?.bio.salutation}. ${query.data?.bio.name}\t"${query.data?.workPlace.designation}\nDepartment of ${query.data?.bio.department}\n${query.data?.workPlace.collegeName}\n${query.data?.workPlace.collegePlace}\n${query.data?.workPlace.collegePinCode}"\t${query.data?.contact.email}\t${query.data?.contact.phone}`
+    const formattedContent = wordCase(content);
+
+    navigator.clipboard.writeText(formattedContent);
   }
 
   if(query.isLoading) {
