@@ -17,6 +17,23 @@ import { Badge } from "@/components/ui/badge";
 import { useMediaQuery } from "react-responsive";
 import { cn } from "@/lib/utils";
 import { userExaminerListFilterContext, type ExaminerFilterProps } from "@/components/examiner-list-filter-context";
+import { generateExcelFile } from "@/lib/generateExcel";
+
+function downloadAsExcel(examinerList :TsUserListDTO) {
+  const data = examinerList.map(examiner => {
+    return {
+      Name: `${examiner.bio.salutation}. ${examiner.bio.name}`,
+      Designation: `${examiner.workPlace.designation}\nDepartment of ${examiner.bio.department}\n${examiner.workPlace.collegeName}\n${examiner.workPlace.collegePlace}\n${examiner.workPlace.collegePinCode}`,
+      Email: examiner.contact.email,
+      Phone: examiner.contact.phone,
+      "Year of Experience": examiner.bio.yearOfExperience,
+      "Theory Handled": examiner.theoryHandled.map(th => th.courseTitle).join(', '),
+      "Practical Handled": examiner.practicalHandled.map(th => th.courseTitle).join(', '),
+    }
+  })
+
+  generateExcelFile(data); // auto promt download
+} 
 
 export default function ExaminersList() {
   const isMobile = useMediaQuery({ maxWidth: 767 });
@@ -159,7 +176,12 @@ export default function ExaminersList() {
       </CardFooter>
     </Card>
 
-    <h1>Examiners</h1>
+    <div className="flex justify-between">
+      Examiners
+      <Button onClick={() => downloadAsExcel(examinerListQuery.data)}>
+        Download as Excel File
+      </Button>
+    </div>
     <Card className={cn(
       'block',
       isMobile && 'hidden'
