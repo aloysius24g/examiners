@@ -122,7 +122,7 @@ export default function Examiner() {
   const copyDetailsAsCells = () => {
     const name = `${query.data?.bio.salutation}. ${query.data?.bio.name}`
     const designation = `"${query.data?.workPlace.designation}\nDepartment of ${query.data?.bio.department}\n${query.data?.workPlace.collegeName}\n${query.data?.workPlace.collegePlace}\n${query.data?.workPlace.collegePinCode}"`
-    const formattedContent = `${wordCase(name)}\t${wordCase(designation)}\t${query.data?.contact.email}\t${query.data?.contact.phone}`;
+    const formattedContent = `${wordCase(name)}\t${designation}\t${query.data?.contact.email}\t${query.data?.contact.phone}`;
 
     navigator.clipboard.writeText(formattedContent);
   }
