@@ -56,6 +56,8 @@ export default function ExaminersList() {
 
   // useMemo baby
   const memoizedFilteredExaminers = useMemo(() => {
+    filterContext.setData(fs.values);
+
     if(! examinerListQuery.data) {
       return [];
     }
@@ -73,8 +75,6 @@ export default function ExaminersList() {
     if(! isFilterPropsUsed) {
       return examinerListQuery.data.sort((e1, e2) => e2.id - e1.id);
     }
-
-    filterContext.setData(fs.values);
 
     const filtered =  examinerListQuery.data.filter(examiner => {
       // just if guard conditions and return false if any fail.
@@ -147,8 +147,12 @@ export default function ExaminersList() {
           {`${memoizedFilteredExaminers.length} matches of ${examinerListQuery.data.length} examiners.`}
         </div>
         <Button type='button' onClick={() => {
-          filterContext.clearData()
-          fs.resetForm()
+          fs.setValues({
+            name: '',
+            department: '',
+            courseTitle: '',
+            courseCode: ''
+          })
         }}>
           Clear filter
         </Button>
