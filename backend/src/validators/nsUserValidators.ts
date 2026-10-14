@@ -20,5 +20,5 @@ export const nsUserRegistrationSchema = z.object({
       "Password must contain at least one special character"
     ),
   salutation: z.enum(["Mr", "Mrs", "Ms", "Dr", "Prof"]),
-  roleName: z.enum(['coe', 'assistant'])
+  roleName: z.enum(['coe', 'dycoe-valuation', 'dycoe-exam'])
 });

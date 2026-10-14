@@ -13,12 +13,14 @@ import ExaminersList from "./pages/ExaminersList";
 import { queryClient } from "./lib/queryClient";
 import { UserContextProvider } from "./components/user-context";
 import { ExaminerPasswordReset } from "./pages/ExaminerPasswordReset";
+import { ExaminerListFilterContext } from "./components/examiner-list-filter-context";
 
 export default function App() {
   return (
     <ThemeProvider defaultTheme="system">
     <QueryClientProvider client={queryClient}>
     <UserContextProvider>
+    <ExaminerListFilterContext>
     <Toaster
       position="bottom-right"
       swipeDirections={['right', 'bottom']}
@@ -60,6 +62,7 @@ export default function App() {
 
       </Routes>
     </BrowserRouter>
+    </ExaminerListFilterContext>
     </UserContextProvider>
     </QueryClientProvider>
     </ThemeProvider>

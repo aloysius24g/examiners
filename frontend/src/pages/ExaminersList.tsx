@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useMediaQuery } from "react-responsive";
 import { cn } from "@/lib/utils";
+import { userExaminerListFilterContext, type ExaminerFilterProps } from "@/components/examiner-list-filter-context";
 
 export default function ExaminersList() {
   const isMobile = useMediaQuery({ maxWidth: 767 });
@@ -23,6 +24,8 @@ export default function ExaminersList() {
 
   const userContext = useUserContext();
   const ability = abilitiesFor(userContext.data)
+
+  const filterContext = userExaminerListFilterContext();
 
   useEffect(() => {
     const ability = abilitiesFor(userContext.data)
@@ -42,13 +45,13 @@ export default function ExaminersList() {
   }); 
 
   const fs = useFormik<ExaminerFilterProps>({
-    initialValues: {
-      name: '',
-      department: '',
+    initialValues: filterContext.data ?? {
       courseCode: '',
       courseTitle: '',
+      department: '',
+      name: ''
     },
-    onSubmit: console.log
+    onSubmit: console.log,
   })
 
   // useMemo baby
@@ -70,6 +73,9 @@ export default function ExaminersList() {
     if(! isFilterPropsUsed) {
       return examinerListQuery.data.sort((e1, e2) => e2.id - e1.id);
     }
+
+    filterContext.setData(fs.values);
+
     const filtered =  examinerListQuery.data.filter(examiner => {
       // just if guard conditions and return false if any fail.
 
@@ -140,7 +146,10 @@ export default function ExaminersList() {
         <div>
           {`${memoizedFilteredExaminers.length} matches of ${examinerListQuery.data.length} examiners.`}
         </div>
-        <Button type='button' onClick={() => fs.resetForm()}>
+        <Button type='button' onClick={() => {
+          filterContext.clearData()
+          fs.resetForm()
+        }}>
           Clear filter
         </Button>
       </CardFooter>
@@ -171,19 +180,21 @@ export default function ExaminersList() {
       {memoizedFilteredExaminers.map((examiner) => (
         <Card key={examiner.id}>
           <CardHeader>
-          <div className="flex gap-2">
-            { (examiner.userVerified !== undefined) &&
-             <Badge className={examiner.userVerified ? 'bg-green-400' : 'bg-yellow-300'} >
-              {examiner.userVerified ? 'Verified' : 'Not Verified'}
+          {ability.can('view', 'examinerPrivateFields') && (
+            <div className="flex gap-2">
+              { (examiner.userVerified !== undefined) &&
+               <Badge className={examiner.userVerified ? 'bg-green-400' : 'bg-yellow-300'} >
+                {examiner.userVerified ? 'Verified' : 'Not Verified'}
+               </Badge>
+              }
+
+            { (examiner.userBlacklisted) &&
+             <Badge variant="destructive" >
+              Blacklisted
              </Badge>
             }
-
-          { (examiner.userBlacklisted) &&
-           <Badge variant="destructive" >
-            Blacklisted
-           </Badge>
-          }
-          </div>
+            </div>
+          )}
           </CardHeader>
           <CardContent className={
               cn(
@@ -228,14 +239,4 @@ export default function ExaminersList() {
       ))}
     </div>
   );
-}
-
-// examiner filter logic with rule logic
-// I generatted these complex types with chatgpt, heeheh
-
-type ExaminerFilterProps = {
-  name: string,
-  department: string,
-  courseCode: string,
-  courseTitle: string,
 }

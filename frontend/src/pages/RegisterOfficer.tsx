@@ -109,7 +109,7 @@ export default function RegisterOfficer() {
                     <Label htmlFor="name">Name</Label>
                     <Input
                       name="name"
-                      placeholder="Eg: Aloysisus Priyan"
+                      placeholder="Eg: Aloysisus"
                       value={fs.values.name}
                       onChange={(v) => fs.setFieldValue('name', v.target.value)}
                       onBlur={fs.handleBlur}
@@ -124,7 +124,7 @@ export default function RegisterOfficer() {
                 <Label htmlFor="name">Username</Label>
                 <Input
                   name="userName"
-                  placeholder="Eg: Aloysius"
+                  placeholder="Eg: aloy123"
                   value={fs.values.userName}
                   onChange={(v) => fs.setFieldValue('userName', v.target.value)}
                   onBlur={fs.handleBlur}
@@ -145,7 +145,8 @@ export default function RegisterOfficer() {
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="assistant">assistant</SelectItem>
+                    <SelectItem value="dycoe-exam">DyCoE Theory/Practical</SelectItem>
+                    <SelectItem value="dycoe-valuation">DyCoE Valuation</SelectItem>
                     <SelectItem value="coe">coe</SelectItem>
                   </SelectContent>
                 </Select>

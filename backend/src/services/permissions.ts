@@ -90,6 +90,7 @@ export function abilitiesFor(user: UserContext | null) {
   if(user.accountType === 'NS') {
     ability.can('view', 'officer', {id: user.id})
     ability.can('view', 'examinerList')
+    ability.can('view', 'examinerPrivateFields')
     if(user?.roleName === 'dycoe-exam') {
       ability.can('view', 'examiner', {preferredFor: {$in: ['examinerPractical']}})
     }
@@ -102,7 +103,6 @@ export function abilitiesFor(user: UserContext | null) {
       ability.can('view', 'officer')
       ability.can('view', 'officerList')
       ability.can('view', 'examiner')
-      ability.can('view', 'examinerPrivateFields')
       ability.can('view', 'examinerPreference')
       ability.can('view', 'examinerAuthenticity')
       ability.can('view', 'qpSettingDuty')

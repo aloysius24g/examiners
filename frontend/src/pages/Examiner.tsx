@@ -107,7 +107,13 @@ export default function Examiner() {
 
   useEffect(() => {
     const ability = abilitiesFor(userContext.data)
-    if(ability.cannot('view', {kind: 'examiner', id: Number(id)})) {
+    //TODO
+    //caution this is simple fix to stop the page redirecting if the permission not matches
+    //since we need to stay in the page in some cases and whether the user authorized or not is 
+    //not determined untill the page loads. So using the generic test ie. is the user able to
+    //view atleast one exainer? if the test pass the page stays and the request to view the 
+    //examiner may sucess or rejected depends on the server authorization.
+    if(ability.cannot('view', 'examiner')) {
       navigate('/login/examiner');
       //toast.error('Not enough permission.');
     }
@@ -146,7 +152,7 @@ export default function Examiner() {
 
       { ability.can('view', 'examinerList') &&
         <Button variant={'outline'} onClick={copyDetailsAsCells}>
-          <Copy />
+          Copy to excel<Copy />
         </Button>
       }
     </div>
@@ -221,7 +227,7 @@ export default function Examiner() {
       <section className="space-y-4 max-w-260 mx-auto">
         <div className="flex justify-between">
           <span className="text-lg">
-            Preferences
+            Preferred For
           </span>
           { ability.can('update', 'examinerPreference') &&
             <PreferencesEditor />

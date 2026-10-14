@@ -116,17 +116,20 @@ export async function registerTsUser(params: TsUserRegistrationDTO): Promise<Res
 
 export async function getTsUser(id: number): Promise<Result<TsUserDetailedDTO, ServiceError>> {
 
+  const bioRequest = await tsUserDal.getTsUserBio(id);
+
+  // since we have to get the examiner preferredFor details to derive whether a user can view them or not
+  // check the ability after getting the bio of the user
+  //
   const userContext = getUserContext();
 
   const ability = abilitiesFor(userContext);
-  if(ability.cannot('view', {kind: 'examiner', id: id})) {
+  if(ability.cannot('view', {kind: 'examiner', id: id, preferredFor: bioRequest.value?.preferredFor ?? []})) {
     return error({
       cause: 'PermissionError',
       message: 'This resource is only available to internal users and the user themselves.'
     })
   }
-
-  const bioRequest = await tsUserDal.getTsUserBio(id);
 
   if(! bioRequest.success) {
     switch(bioRequest.error.cause) {
@@ -295,9 +298,20 @@ export async function getTsUsers():
     }
   }
   const tsUsersRaw = getRes.value;
+
+  const tsUserCanBeViewed = tsUsersRaw.filter(raw => {
+    if(ability.can(
+      'view',
+      {kind: 'examiner', id: raw.userId, preferredFor: raw.preferences.map(pr => pr.preferredFor)}
+    )) {
+      return true;
+    }
+    return false;
+  });
+
   // undefined in the following cases means: thre is no valid latest updated on theory/practical
   // courses.
-  const tsUsersFormatted: TsUserListDTO | undefined = tsUsersRaw.map(raw => {
+  const tsUsersFormatted: TsUserListDTO | undefined = tsUserCanBeViewed.map(raw => {
 
     const practicalLatestUpdateTime = raw.practicalCoursesLastUpdated;
     const theoryLatestUpdateTime = raw.theoryCoursesLastUpdated;

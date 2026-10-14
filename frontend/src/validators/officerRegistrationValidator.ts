@@ -20,7 +20,7 @@ const schema = yup.object({
       .required(),
     roleName: yup
      .string()
-     .oneOf(['coe', 'assistant'])
+     .oneOf(['coe', 'dycoe-valuation', 'dycoe-exam'])
      .required(),
     password: yup
       .string()                                                                                  
