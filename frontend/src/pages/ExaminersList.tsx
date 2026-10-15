@@ -18,6 +18,8 @@ import { useMediaQuery } from "react-responsive";
 import { cn } from "@/lib/utils";
 import { userExaminerListFilterContext, type ExaminerFilterProps } from "@/components/examiner-list-filter-context";
 import { generateExcelFile } from "@/lib/generateExcel";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { prefOptions } from "./Examiner";
 
 function downloadAsExcel(examinerList :TsUserListDTO) {
   const data = examinerList.map(examiner => {
@@ -66,7 +68,8 @@ export default function ExaminersList() {
       courseCode: '',
       courseTitle: '',
       department: '',
-      name: ''
+      name: '',
+      preferredFor: ''
     },
     onSubmit: console.log,
   })
@@ -95,6 +98,13 @@ export default function ExaminersList() {
 
     const filtered =  examinerListQuery.data.filter(examiner => {
       // just if guard conditions and return false if any fail.
+
+      // preferrence filtering
+      if(
+        ! examiner.preferences?.includes(filterProps.preferredFor)
+      ) {
+        return false;
+      }
 
       // name filtering
       if(
@@ -150,14 +160,35 @@ export default function ExaminersList() {
     <h1>Filter</h1>
     <Card>
       <CardContent className="grid sm:grid-cols-2 grid-cols-1 gap-2 items-center">
-        <Label htmlFor="name" className="text-xs text-muted-foreground">Name</Label>
-        <Label htmlFor="department" className="text-xs text-muted-foreground">Department</Label>
-        <Input name="name" id="name" value={fs.values.name} onChange={e => fs.setFieldValue('name', e.target.value)}/>
-        <Input name="department" id="department" value={fs.values.department} onChange={e => fs.setFieldValue('department', e.target.value)} />
-        <Label htmlFor="courseCode" className="text-xs text-muted-foreground">Course Code</Label>
-        <Label htmlFor="courseTitle" className="text-xs text-muted-foreground">Course Title</Label>
-        <Input name="courseCode" id="courseCode" value={fs.values.courseCode} onChange={e => fs.setFieldValue('courseCode', e.target.value)} />
-        <Input name="courseTitle"id="courseTitle" value={fs.values.courseTitle} onChange={e => fs.setFieldValue('courseTitle', e.target.value)}/>
+        <div>
+          <Label htmlFor="name" className="text-xs text-muted-foreground">Name</Label>
+          <Input name="name" id="name" value={fs.values.name} onChange={e => fs.setFieldValue('name', e.target.value)}/>
+        </div>
+        <div>
+          <Label htmlFor="department" className="text-xs text-muted-foreground">Department</Label>
+          <Input name="department" id="department" value={fs.values.department} onChange={e => fs.setFieldValue('department', e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="courseCode" className="text-xs text-muted-foreground">Course Code</Label>
+          <Input name="courseCode" id="courseCode" value={fs.values.courseCode} onChange={e => fs.setFieldValue('courseCode', e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="courseTitle" className="text-xs text-muted-foreground">Course Title</Label>
+          <Input name="courseTitle"id="courseTitle" value={fs.values.courseTitle} onChange={e => fs.setFieldValue('courseTitle', e.target.value)}/>
+        </div>
+        <div>
+          <Label htmlFor="preferredFor" className="text-xs text-muted-foreground">Preferred For</Label>
+          <Select value={fs.values.preferredFor} onValueChange={v => fs.setFieldValue('preferredFor', v)}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder='choose' />
+            </SelectTrigger>
+            <SelectContent>
+              { prefOptions.map(po => <SelectItem value={po.value}>{po.label}</SelectItem>)
+              }
+              <SelectItem value="">clear</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </CardContent>
       <CardFooter className="flex justify-between">
         <div>
@@ -168,7 +199,8 @@ export default function ExaminersList() {
             name: '',
             department: '',
             courseTitle: '',
-            courseCode: ''
+            courseCode: '',
+            preferredFor: '',
           })
         }}>
           Clear filter

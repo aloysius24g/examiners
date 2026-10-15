@@ -5,6 +5,7 @@ export type ExaminerFilterProps = {
   department: string,
   courseCode: string,
   courseTitle: string,
+  preferredFor: string,
 }
 
 export const {

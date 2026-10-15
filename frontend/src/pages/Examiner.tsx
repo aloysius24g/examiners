@@ -39,7 +39,7 @@ import { Switch } from "@/components/ui/switch";
 
 dayjs.extend(utc);
 
-const prefOptions = [
+export const prefOptions = [
   {label: 'Question Paper Setter', value:'questionSetter'},
   {label: 'Question Paper Scrutinizer', value:'questionScrutinizer'},
   {label: 'Practical Examiner', value:'examinerPractical'},
