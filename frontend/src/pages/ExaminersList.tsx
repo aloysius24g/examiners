@@ -101,7 +101,7 @@ export default function ExaminersList() {
 
       // preferrence filtering
       if(
-        ! (filterProps.peferredFor === '') &&
+        filterProps.preferredFor !== '' &&
         ! examiner.preferences?.includes(filterProps.preferredFor)
       ) {
         return false;
