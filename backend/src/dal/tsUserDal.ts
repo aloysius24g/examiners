@@ -124,7 +124,9 @@ async function getTsUserBio(id: number) {
           },
           take: 1
         },
-        qpSettingDuties: true
+        qpSettingDuties: true,
+        scrutinyDuties: true,
+        practicalDuties: true
       }
     }); 
 
@@ -158,7 +160,9 @@ async function getTsUserBio(id: number) {
       ugSpecialization: tsUser.ugSpecialization,
       pgSpecialization: tsUser.pgSpecialization,
       phdSpecialization: tsUser.phdSpecialization,
-      qpSettingDuties: tsUser.qpSettingDuties
+      qpSettingDuties: tsUser.qpSettingDuties,
+      scrutinyDuties: tsUser.scrutinyDuties,
+      practicalDuties: tsUser.practicalDuties
     });
   }catch(e) {
     return prismaErrorAsValue(e);
@@ -601,7 +605,9 @@ export async function getTsUsers() {
         },
         _count: {
           select : {
-            qpSettingDuties: true
+            qpSettingDuties: true,
+            scrutinyDuties: true,
+            practicalDuties: true
           }
         }
       }

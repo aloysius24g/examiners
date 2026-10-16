@@ -64,6 +64,8 @@ model TsUser {
   practicalsHandled PracticalHandled[]
   collegesWorked CollegeWorked[]
   qpSettingDuties QPSettingDuties[]
+  scrutinyDuties ScrutinyDuties[]
+  practicalDuties PracticalDuties[]
 
   @@index([userId])
 }
@@ -142,6 +144,26 @@ enum Sem {
 }
 
 model QPSettingDuties {
+  id String @id @default(cuid())
+  userId Int
+  tsUser TsUser @relation(fields: [userId], references: [userId])
+  sem   Sem
+  year String @db.Char(4)
+  courseCode String @db.VarChar(10)
+}
+
+model ScrutinyDuties {
+  id String @id @default(cuid())
+  userId Int
+  tsUser TsUser @relation(fields: [userId], references: [userId])
+  sem   Sem
+  year String @db.Char(4)
+  questionCount Int
+
+  @@unique([userId, sem, year])
+}
+
+model PracticalDuties {
   id String @id @default(cuid())
   userId Int
   tsUser TsUser @relation(fields: [userId], references: [userId])

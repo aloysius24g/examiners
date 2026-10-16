@@ -1,4 +1,4 @@
-import { ContactDTO, ContactDTOWithOTP, PasswordResetDTO, QPDutyDTO, TsUserDetailedDTO, TsUserListDTO, TsUserMinimalDTO, TsUserRegistrationDTO, UpdatablePersonalInfoDTO, WorkPlaceDTO } from "../controllers/tsUserController.js";
+import { ContactDTO, ContactDTOWithOTP, PasswordResetDTO, PracticalDutyDTO, QPDutyDTO, ScrutinyDutyDTO, TsUserDetailedDTO, TsUserListDTO, TsUserMinimalDTO, TsUserRegistrationDTO, UpdatablePersonalInfoDTO, WorkPlaceDTO } from "../controllers/tsUserController.js";
 import * as otpService from '../services/otpService.js';
 import { isExistNotUsedIdCardImage } from "../dal/idCardImageDal.js"
 import * as tsUserDal from "../dal/tsUserDal.js";
@@ -11,7 +11,7 @@ import bcrypt from "bcrypt";
 import { abilitiesFor } from "./permissions.js";
 import { CourseDTO } from "../controllers/courseController.js";
 import { courseListSchema } from "../validators/courseValidators.js";
-import { qpSettingDutySchema } from "../validators/dutyValidators.js";
+import { practicalDutySchema, qpSettingDutySchema, scrutinyDutySchema } from "../validators/dutyValidators.js";
 import dutyDal from "../dal/dutyDal.js";
 
 export async function registerTsUser(params: TsUserRegistrationDTO): Promise<Result<TsUserMinimalDTO, ServiceError>> {
@@ -251,6 +251,18 @@ export async function getTsUser(id: number): Promise<Result<TsUserDetailedDTO, S
         }
         : {}
        ),
+    ...(ability.can('view', 'scrutinyDuty') ?
+        {
+          scrutinyDuties: bioRequest.value.scrutinyDuties
+        }
+        : {}
+       ),
+    ...(ability.can('view', 'practicalDuty') ?
+        {
+          practicalDuties: bioRequest.value.practicalDuties
+        }
+        : {}
+       ),
     ...(ability.can('view', 'examinerPrivateFields') ?
         {
           userVerified: bioRequest.value.userVerified, 
@@ -349,6 +361,16 @@ export async function getTsUsers():
       ...(ability.can('view', 'qpSettingDuty') ?
           {
             qpSettingDutiesCount: raw._count.qpSettingDuties // lazy writing on dal layer lol
+          } : {}
+         ),
+      ...(ability.can('view', 'scrutinyDuty') ?
+          {
+            scrutinyDutiesCount: raw._count.scrutinyDuties // lazy writing on dal layer lol
+          } : {}
+         ),
+      ...(ability.can('view', 'practicalDuty') ?
+          {
+            practicalDutiesCount: raw._count.practicalDuties // lazy writing on dal layer lol
           } : {}
          ),
       
@@ -869,7 +891,7 @@ export async function assignQPTask(userId: number, duty: Omit<QPDutyDTO, 'id'>):
   if(ability.cannot('create', 'qpSettingDuty')) {
     return error({
       cause: 'PermissionError',
-      message: 'User has not enough permission to assign qp setting dutie.'
+      message: 'User has not enough permission to assign qp setting duty.'
     })
   }
 
@@ -911,12 +933,200 @@ export async function deleteQPTask(userId: number, dutyId: string):
   if(ability.cannot('delete', 'qpSettingDuty')) {
     return error({
       cause: 'PermissionError',
-      message: 'User has not enough permission to assign qp setting dutie.'
+      message: 'User has no permission to delete qp setting duty.'
     })
   }
 
   // dal mutation
   const mutRes = await dutyDal.deleteQPSettingDuty(userId, dutyId);
+  if(! mutRes.success) {
+    switch(mutRes.error.cause) {
+      case "KnownRequestError":
+        return error({
+          cause: 'BussinessConstraintViolation',
+          message: mutRes.error.message
+        })
+      case "RecordNotFound":
+      case "ForeignKeyViolation":
+      case "ValidationError":
+        return error({
+        cause: 'ValidationError',
+        message: mutRes.error.message
+      })
+      case "DuplicateRecord":
+      case "UnknownRequestError":
+      case "DbUnAvailableError":
+      return error({
+        cause: 'DbError',
+        message: mutRes.error.message
+      })
+    }
+  }
+
+  return success(mutRes.value.id);
+}
+
+export async function assignScrutinyTask(userId: number, duty: Omit<ScrutinyDutyDTO, 'id'>):
+  Promise<Result<ScrutinyDutyDTO, ServiceError>>{
+
+  // check if the input domain object is valid.
+  const safeParams = scrutinyDutySchema.safeParse(duty);
+
+  if(! safeParams.success) {
+    return error({
+      cause: 'ValidationError',
+      message: safeParams.error.issues.map(i => i.message).join('\n')
+    })
+  }
+
+  // check user permissions
+  const userContext = getUserContext();
+  const ability = abilitiesFor(userContext);
+  if(ability.cannot('create', 'scrutinyDuty')) {
+    return error({
+      cause: 'PermissionError',
+      message: 'User has not enough permission to assign scrutiny dutie.'
+    })
+  }
+
+  // dal mutation
+  const mutRes = await dutyDal.createScrutinyDuty(userId, safeParams.data);
+  if(! mutRes.success) {
+    switch(mutRes.error.cause) {
+      case "ForeignKeyViolation":
+      case "RecordNotFound":
+      case "ValidationError":
+        return error({
+        cause: 'ValidationError',
+        message: mutRes.error.message
+      })
+      case "KnownRequestError":
+      case "DuplicateRecord": // comes if two appointment is provided to same person in a single exam.
+        return error({
+          cause: 'BussinessConstraintViolation',
+          message: mutRes.error.message
+        })
+      case "UnknownRequestError":
+      case "DbUnAvailableError":
+      return error({
+        cause: 'DbError',
+        message: mutRes.error.message
+      })
+    }
+  }
+
+  return success(mutRes.value);
+}
+
+export async function deleteScrutinyTask(userId: number, dutyId: string): 
+  Promise<Result<string, ServiceError>> {
+
+  // check user permissions
+  const userContext = getUserContext();
+  const ability = abilitiesFor(userContext);
+  if(ability.cannot('delete', 'scrutinyDuty')) {
+    return error({
+      cause: 'PermissionError',
+      message: 'User has no permission to remove scrutiny duty.'
+    })
+  }
+
+  // dal mutation
+  const mutRes = await dutyDal.deleteScrutinyDuty(userId, dutyId);
+  if(! mutRes.success) {
+    switch(mutRes.error.cause) {
+      case "KnownRequestError":
+        return error({
+          cause: 'BussinessConstraintViolation',
+          message: mutRes.error.message
+        })
+      case "RecordNotFound":
+      case "ForeignKeyViolation":
+      case "ValidationError":
+        return error({
+        cause: 'ValidationError',
+        message: mutRes.error.message
+      })
+      case "DuplicateRecord":
+      case "UnknownRequestError":
+      case "DbUnAvailableError":
+      return error({
+        cause: 'DbError',
+        message: mutRes.error.message
+      })
+    }
+  }
+
+  return success(mutRes.value.id);
+}
+
+export async function assignPracticalTask(userId: number, duty: Omit<PracticalDutyDTO, 'id'>):
+  Promise<Result<PracticalDutyDTO, ServiceError>>{
+
+  // check if the input domain object is valid.
+  const safeParams = practicalDutySchema.safeParse(duty);
+
+  if(! safeParams.success) {
+    return error({
+      cause: 'ValidationError',
+      message: safeParams.error.issues.map(i => i.message).join('\n')
+    })
+  }
+
+  // check user permissions
+  const userContext = getUserContext();
+  const ability = abilitiesFor(userContext);
+  if(ability.cannot('create', 'practicalDuty')) {
+    return error({
+      cause: 'PermissionError',
+      message: 'User has no permission to assign practical duty.'
+    })
+  }
+
+  // dal mutation
+  const mutRes = await dutyDal.createPracticalDuty(userId, safeParams.data);
+  if(! mutRes.success) {
+    switch(mutRes.error.cause) {
+      case "ForeignKeyViolation":
+      case "RecordNotFound":
+      case "ValidationError":
+        return error({
+        cause: 'ValidationError',
+        message: mutRes.error.message
+      })
+      case "KnownRequestError":
+      case "DuplicateRecord": // comes if two appointment is provided to same person in a single exam.
+        return error({
+          cause: 'BussinessConstraintViolation',
+          message: mutRes.error.message
+        })
+      case "UnknownRequestError":
+      case "DbUnAvailableError":
+      return error({
+        cause: 'DbError',
+        message: mutRes.error.message
+      })
+    }
+  }
+
+  return success(mutRes.value);
+}
+
+export async function deletePracticalTask(userId: number, dutyId: string): 
+  Promise<Result<string, ServiceError>> {
+
+  // check user permissions
+  const userContext = getUserContext();
+  const ability = abilitiesFor(userContext);
+  if(ability.cannot('delete', 'practicalDuty')) {
+    return error({
+      cause: 'PermissionError',
+      message: 'User has no permission to remove practical duty.'
+    })
+  }
+
+  // dal mutation
+  const mutRes = await dutyDal.deletePracticalDuty(userId, dutyId);
   if(! mutRes.success) {
     switch(mutRes.error.cause) {
       case "KnownRequestError":

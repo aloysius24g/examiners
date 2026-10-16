@@ -46,6 +46,15 @@ export type QPDutyDTO = {
   courseCode: string,
 }
 
+export type ScrutinyDutyDTO = {
+  id: string,
+  sem: string,
+  year: string,
+  questionCount: number,
+}
+
+export type PracticalDutyDTO = QPDutyDTO;
+
 export type TsUserDetailedDTO = 
   Partial<TsUserInternalFields>
   & {
@@ -78,6 +87,8 @@ export type TsUserDetailedDTO =
     theoryCoursesLastUpdated: string | null,
     practicalCoursesLastUpdated: string | null,
     qpSettingDuties?: QPDutyDTO[]
+    scrutinyDuties?: ScrutinyDutyDTO[]
+    practicalDuties?: PracticalDutyDTO[]
   }
 
 export type TsUserListDTO = (
@@ -90,6 +101,8 @@ export type TsUserListDTO = (
     | "bio"
   > & {
     qpSettingDutiesCount?: number,
+    scrutinyDutiesCount?: number,
+    practicalDutiesCount?: number,
     id: number,
     bio : Omit<
       TsUserDetailedDTO["bio"], 
@@ -507,7 +520,7 @@ export class TsUserController extends Controller {
   }
 
   @Post('{id}/qp-setting-duties')
-  public async getQPSettingDuties(
+  public async postQPSettingDuties(
     @Path() id: number,
     @Body() body: Omit<QPDutyDTO, 'id'>,
   ) {
@@ -538,6 +551,110 @@ export class TsUserController extends Controller {
     @Path() dutyId: string,
   ) {
     const deleteRes = await tsUserService.deleteQPTask(id, dutyId);
+
+    if (!deleteRes.success) {
+      switch (deleteRes.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(deleteRes.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(deleteRes.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(deleteRes.error.message);
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(deleteRes.error.message);
+      }
+    }
+
+    return deleteRes.value;
+  }
+
+  @Post('{id}/scrutiny-duties')
+  public async postScrutinyDuties(
+    @Path() id: number,
+    @Body() body: Omit<ScrutinyDutyDTO, 'id'>,
+  ) {
+    const createRes = await tsUserService.assignScrutinyTask(id, body);
+
+    if (!createRes.success) {
+      switch (createRes.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(createRes.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(createRes.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(createRes.error.message);
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(createRes.error.message);
+      }
+    }
+
+    return createRes.value;
+  }
+
+  @Delete('{id}/scrutiny-duties/{dutyId}')
+  public async deleteScrutinyDuties(
+    @Path() id: number,
+    @Path() dutyId: string,
+  ) {
+    const deleteRes = await tsUserService.deleteScrutinyTask(id, dutyId);
+
+    if (!deleteRes.success) {
+      switch (deleteRes.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(deleteRes.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(deleteRes.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(deleteRes.error.message);
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(deleteRes.error.message);
+      }
+    }
+
+    return deleteRes.value;
+  }
+
+  @Post('{id}/practical-duties')
+  public async postPracticalDuties(
+    @Path() id: number,
+    @Body() body: Omit<PracticalDutyDTO, 'id'>,
+  ) {
+    const createRes = await tsUserService.assignPracticalTask(id, body);
+
+    if (!createRes.success) {
+      switch (createRes.error.cause) {
+        case "DbError":
+          throw new InternalServerError();
+        case "ValidationError":
+          throw new ValidationError(createRes.error.message);
+        case "BussinessConstraintViolation":
+          throw new ConflictError(createRes.error.message);
+        case "NotFoundError":
+          throw new NotFoundError(createRes.error.message);
+        case "PermissionError":
+        case "AuthenticationError":
+          throw new UnauthorizedError(createRes.error.message);
+      }
+    }
+
+    return createRes.value;
+  }
+
+  @Delete('{id}/practical-duties/{dutyId}')
+  public async deletePracticalDuties(
+    @Path() id: number,
+    @Path() dutyId: string,
+  ) {
+    const deleteRes = await tsUserService.deletePracticalTask(id, dutyId);
 
     if (!deleteRes.success) {
       switch (deleteRes.error.cause) {
