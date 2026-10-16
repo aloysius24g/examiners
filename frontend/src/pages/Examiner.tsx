@@ -47,6 +47,8 @@ export const prefOptions = [
   {label: 'Valuation Examiner', value:'examinerValuation'},
 ]
 
+const DUTIES = ['qpSettingDuty', 'scrutinyDuty', 'practicalDuty'] as const;
+
 export function wordCase(content: string) {
   let formatted = '';
   let isPrevSpace = true;
@@ -239,9 +241,13 @@ export default function Examiner() {
         </div>
       </section>
     }
-    <section className="space-y-4 max-w-260 mx-auto">
-      <DutyTabs />
-    </section>
+
+    {/* Duties */}
+    {DUTIES.find(d => ability.can('view', d)) && // only show tabs if the ability can atleast view one duty type.
+      <section className="space-y-4 max-w-260 mx-auto">
+        <DutyTabs />
+      </section>
+    }
 
     {/*Own Preferences*/}
     <section className="space-y-4 max-w-260 mx-auto">
@@ -1354,7 +1360,7 @@ function AssignPracticalDutyDialog() {
           onChange={e => setYear(Number(e.target.value))}
         >
         </Input>
-        <Label htmlFor='courseCode'>Question Count</Label>
+        <Label htmlFor='courseCode'>Course Code</Label>
         <Input
           id='courseCode'
           value={courseCode}
@@ -1527,11 +1533,10 @@ export function DutyTabs() {
   if(! query.data) {
     return <h1>something went wrong</h1>
   }
-  const duties = ['qpSettingDuty', 'scrutinyDuty', 'practicalDuty'] as const;
 
   return (
     <Tabs defaultValue={
-        duties.find(d => ability.can('view', d))
+        DUTIES.find(d => ability.can('view', d))
       }
       className="w-full border rounded-(--radius)"
     >
