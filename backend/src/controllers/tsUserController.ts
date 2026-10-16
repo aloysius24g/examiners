@@ -96,6 +96,8 @@ export type TsUserListDTO = (
     TsUserDetailedDTO,
       "theoryCoursesLastUpdated"
     | "qpSettingDuties"
+    | "scrutinyDuties"
+    | "practicalDuties"
     | "practicalCoursesLastUpdated"
     | "ownPreferences"
     | "bio"
