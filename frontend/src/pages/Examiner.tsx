@@ -47,7 +47,7 @@ export const prefOptions = [
   {label: 'Valuation Examiner', value:'examinerValuation'},
 ]
 
-function wordCase(content: string) {
+export function wordCase(content: string) {
   let formatted = '';
   let isPrevSpace = true;
   let curFormattedChar = '';
@@ -114,9 +114,9 @@ export default function Examiner() {
   }, [userContext.data])
 
   const copyDetailsAsCells = () => {
-    const name = `${query.data?.bio.salutation}. ${query.data?.bio.name}`
+    const name = `${query.data?.bio.salutation}. ${wordCase(query.data?.bio.name ?? '')}`
     const designation = `"${query.data?.workPlace.designation}\nDepartment of ${query.data?.bio.department}\n${query.data?.workPlace.collegeName}\n${query.data?.workPlace.collegePlace}\n${query.data?.workPlace.collegePinCode}"`
-    const formattedContent = `${wordCase(name)}\t${designation}\t${query.data?.contact.email}\t${query.data?.contact.phone}`;
+    const formattedContent = `${name}\t${designation}\t${query.data?.contact.email}\t${query.data?.contact.phone}`;
 
     navigator.clipboard.writeText(formattedContent);
   }

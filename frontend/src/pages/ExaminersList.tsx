@@ -19,12 +19,12 @@ import { cn } from "@/lib/utils";
 import { userExaminerListFilterContext, type ExaminerFilterProps } from "@/components/examiner-list-filter-context";
 import { generateExcelFile } from "@/lib/generateExcel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { prefOptions } from "./Examiner";
+import { prefOptions, wordCase } from "./Examiner";
 
 function downloadAsExcel(examinerList :TsUserListDTO) {
   const data = examinerList.map(examiner => {
     return {
-      Name: `${examiner.bio.salutation}. ${examiner.bio.name}`,
+      Name: `${examiner.bio.salutation}. ${wordCase(examiner.bio.name)}`,
       Designation: `${examiner.workPlace.designation}\nDepartment of ${examiner.bio.department}\n${examiner.workPlace.collegeName}\n${examiner.workPlace.collegePlace}\n${examiner.workPlace.collegePinCode}`,
       Email: examiner.contact.email,
       Phone: examiner.contact.phone,
