@@ -5,10 +5,10 @@ import { abilitiesFor } from "@/permissions";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-
+import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover"
 
 import type { TsUserListDTO } from '../../../backend/src/controllers/tsUserController';
-import { ExternalLink } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
 import { useFormik } from "formik";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -48,7 +48,7 @@ export default function ExaminersList() {
 
   useEffect(() => {
     const ability = abilitiesFor(userContext.data)
-    if(ability.cannot('view', 'officer')) {
+    if(ability.cannot('view', 'examinerList')) {
       navigate('/login/examiner');
       //toast.error('Not enough permission.');
     }
@@ -101,6 +101,7 @@ export default function ExaminersList() {
 
       // preferrence filtering
       if(
+        ! (filterProps.peferredFor === '') &&
         ! examiner.preferences?.includes(filterProps.preferredFor)
       ) {
         return false;
@@ -218,20 +219,14 @@ export default function ExaminersList() {
       'block',
       isMobile && 'hidden'
     )} >
-      <CardContent className={cn(
-          'grid',
-          ability.can('view', 'qpSettingDuty') && 'grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr_1fr]',
-          ability.cannot('view', 'qpSettingDuty') && 'grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr]',
-      )}
+      <CardContent className={'grid grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr_1fr]' }
       >
         <p className="text-xs text-muted-foreground">Name</p>
         <p className="text-xs text-muted-foreground">Department</p>
         <p className="text-xs text-muted-foreground">Designation</p>
         <p className="text-xs text-muted-foreground">College</p>
         <p className="text-xs text-muted-foreground">Experience</p>
-        {ability.can('view', 'qpSettingDuty') &&
-          <p className="text-xs text-muted-foreground flex justify-end">Qp Duty</p>
-        }
+        <p className="text-xs text-muted-foreground flex justify-center">Duty count</p>
         <p className="text-xs text-muted-foreground flex justify-end">Open</p>
       </CardContent>
     </Card>
@@ -256,8 +251,7 @@ export default function ExaminersList() {
           </CardHeader>
           <CardContent className={
               cn(
-                "grid grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr]",
-                ability.can('view', 'qpSettingDuty') && 'grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr_1fr]',
+                "grid grid-cols-[3fr_4fr_3fr_4fr_1fr_1fr_1fr]",
                 isMobile && 'grid-cols-[1fr_2fr]'
               )
           } >
@@ -276,8 +270,12 @@ export default function ExaminersList() {
               {isMobile && <p className="flex items-center">Year of Experience</p>}
               <p className="flex items-center">{examiner.bio.yearOfExperience} years</p>
 
-              {(isMobile && ability.can('view', 'qpSettingDuty')) && <p className="flex items-center">Qp Duty</p>}
-              {ability.can('view', 'qpSettingDuty') && <p className="flex items-center">{examiner.qpSettingDutiesCount} duties</p>}
+              {isMobile && <p className="flex items-center">Duty count</p>}
+              <DutyCountPopOver
+                qpSettingDutiesCount={examiner.qpSettingDutiesCount}
+                scrutinyDutiesCount={examiner.scrutinyDutiesCount}
+                practicalDutiesCount={examiner.practicalDutiesCount}
+              />
 
               {isMobile && <p className="flex items-center">Open</p>}
               <NavLink
@@ -286,7 +284,7 @@ export default function ExaminersList() {
                 to={`/examiners/${examiner.id}`}
                 className={
                   cn(
-                    'flex flex-col py-2 rounded-md text-sm items-center cursor-pointer border',
+                    'flex flex-col py-2 rounded-md text-sm items-end cursor-pointer',
                     isMobile && 'items-start border-none'
                   )
                 }>
@@ -297,4 +295,32 @@ export default function ExaminersList() {
       ))}
     </div>
   );
+}
+
+// trying to do a proover that shows all duty counts.
+// should have an icon as trigger
+// should accept props like qpSettingDutiesCount, scrutinyDutiesCount, practicalDutiesCount 
+type DutyCount = {
+  qpSettingDutiesCount?: number,
+  scrutinyDutiesCount?: number,
+  practicalDutiesCount?: number
+}
+function DutyCountPopOver(dutyCount: DutyCount) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="rounded-md px-4 py-2 flex justify-center">
+          <ChevronDown />
+        </button>
+      </PopoverTrigger>
+
+      <PopoverContent className="w-auto">
+        <div className="space-y-2">
+        {dutyCount.qpSettingDutiesCount?.toString() ? <p>No. of Question Paper Setting Appointments: {dutyCount.qpSettingDutiesCount}</p> : ''}
+        {dutyCount.scrutinyDutiesCount?.toString() ? <p>No. of Scrutiny Appointments: {dutyCount.scrutinyDutiesCount}</p> : ''}
+        {dutyCount.practicalDutiesCount?.toString() ? <p>No. of Practical Appointments: {dutyCount.practicalDutiesCount}</p> : ''}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
 }

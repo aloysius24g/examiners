@@ -55,6 +55,8 @@ type Subjects =
 | 'examinerPreference'
 | 'examinerAuthenticity'
 | 'qpSettingDuty'
+| 'scrutinyDuty'
+| 'practicalDuty'
 | ComplexSub
 
 //type AppAbility = MongoAbility<[Actions, Sub]>
@@ -94,6 +96,9 @@ export function abilitiesFor(user: UserContext | null) {
     ability.can('view', 'examinerPrivateFields')
     if(user?.roleName === 'dycoe-exam') {
       ability.can('view', 'examiner', {preferredFor: {$in: ['examinerPractical']}})
+      ability.can('create', 'practicalDuty')
+      ability.can('view', 'practicalDuty')
+      ability.can('delete', 'practicalDuty')
     }
     if(user?.roleName === 'dycoe-valuation') {
       ability.can('view', 'examiner', {preferredFor: {$in: ['examinerValuation']}})
@@ -101,16 +106,19 @@ export function abilitiesFor(user: UserContext | null) {
     if(user?.roleName === 'coe') {
       ability.can('create', 'officer')
       ability.can('create', 'qpSettingDuty')
+      ability.can('create', 'scrutinyDuty')
       ability.can('view', 'officer')
       ability.can('view', 'officerList')
       ability.can('view', 'examiner')
-      ability.can('view', 'examinerPreference')
+      ability.can('view', 'examinerPreference') // why is it here. since preference comes within examinerPrivateFields
       ability.can('view', 'examinerAuthenticity')
       ability.can('view', 'qpSettingDuty')
+      ability.can('view', 'scrutinyDuty')
       ability.can('view', 'officerActiveStatus')
       ability.can('update', 'examinerPreference')
       ability.can('update', 'examinerAuthenticity')
       ability.can('delete', 'qpSettingDuty')
+      ability.can('delete', 'scrutinyDuty')
       ability.can('update', 'officerActiveStatus')
       // for correcting aicte and fin numbers
       ability.can('update', 'personalInformation')

@@ -31,8 +31,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-import type { ContactDTO, WorkPlaceDTO, QPDutyDTO } from '../../../backend/src/controllers/tsUserController';
+import type { ContactDTO, WorkPlaceDTO, QPDutyDTO, ScrutinyDutyDTO, PracticalDutyDTO } from '../../../backend/src/controllers/tsUserController';
 import type { TsUserDetailedDTO, UpdatablePersonalInfoDTO } from '../../../backend/src/controllers/tsUserController';
 import type { CourseDTO } from "../../../backend/src/controllers/courseController";
 import { Switch } from "@/components/ui/switch";
@@ -89,13 +90,6 @@ export default function Examiner() {
   const blacklistedMut = useMutation({
     mutationFn: async (v: {userBlacklisted: boolean}) => {
       const res = await apiClient.put<{userBlacklisted: boolean}>(`/examiners/${id}/blacklisted`, v)
-      return res.data;
-    } 
-  })
-
-  const dutyDeleteMut = useMutation({
-    mutationFn: async (v: {dutyId: string}) => {
-      const res = await apiClient.delete<QPDutyDTO>(`/examiners/${id}/qp-setting-duties/${v.dutyId}`)
       return res.data;
     } 
   })
@@ -245,60 +239,9 @@ export default function Examiner() {
         </div>
       </section>
     }
-
-    {/*Question Paper Setting Assignment*/}
-    { ability.can('view', 'qpSettingDuty') && (query.data.qpSettingDuties) &&
-      <section className="space-y-4 max-w-260 mx-auto">
-        <div className="flex justify-between">
-          <span className="text-lg">
-            Question Paper Setting Duties
-          </span>
-          { ability.can('create', 'qpSettingDuty') &&
-            <AssignQPSettingDutyDialog />
-          }
-        </div>
-
-        <div className="p-8 border rounded-(--radius) flex flex-col gap-2 max-h-[30vh] overflow-y-auto">
-          {
-            (query.data.qpSettingDuties.length === 0)
-            && <div className='text-destructive'>no duty assigned</div>
-          }
-          {query.data.qpSettingDuties && query.data.qpSettingDuties
-            .sort((a,b) => {
-              const res = Number(b.year) - Number(a.year)
-              // same year
-              if(res === 0) {
-                return a.sem > b.sem ? -1 : 1;
-              }
-              return res;
-            })
-            .map(duty => 
-              <div key={duty.id} className="p-3 flex justify-between bg-secondary rounded-(--radius)">
-                <div>
-                  {duty.sem === 'odd' && 'Nov./Dec.'}
-                  {duty.sem === 'even' && 'April/May'}
-                </div>
-                <div>
-                  {duty.year}
-                </div>
-                <div>
-                  {duty.courseCode}
-                </div>
-                <ConfirmPopup confirmCb={() => {
-                  const mP = dutyDeleteMut.mutateAsync({dutyId: duty.id});
-                  toast.promise(mP, {
-                    loading: 'deleting duty.',
-                    success: 'duty deleted.',
-                    error: (e) => e.response?.data?.message ?? 'Cant delete Duty.',
-                  })
-                  mP.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}))
-                }} />
-              </div>
-            )
-          }
-        </div>
-      </section>
-    }
+    <section className="space-y-4 max-w-260 mx-auto">
+      <DutyTabs />
+    </section>
 
     {/*Own Preferences*/}
     <section className="space-y-4 max-w-260 mx-auto">
@@ -1249,6 +1192,185 @@ function AssignQPSettingDutyDialog() {
   </Dialog>
 }
 
+function AssignScrutinyDutyDialog() {
+
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [semCycle, setSemCycle] = useState<string>(new Date().getMonth() > 6 ? 'odd': 'even');
+  const [questionCount, setQuestionCount] = useState<number>(6);
+
+  const { id } = useParams();
+
+  const assignDutyMut = useMutation({
+    mutationFn: async (v: Omit<ScrutinyDutyDTO, 'id'>) => {
+      const res = await apiClient.post<ScrutinyDutyDTO>(`/examiners/${id}/scrutiny-duties`, v);
+      return res.data;
+    } 
+  })
+
+  const handleSubmit = () => {
+    const mutPromise = assignDutyMut.mutateAsync({
+      year: year.toString(), 
+      sem: semCycle,
+      questionCount: questionCount
+    });
+    toast.promise(mutPromise, {
+      loading: 'Assigning.',
+      success: 'Assigned.',
+      error: (e) => e.response?.data?.message ?? 'something went wrong, cant assign duty.',
+    })
+    mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
+    mutPromise.then(() => setIsEditorOpen(false));
+  }
+
+  return <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen} >
+    <DialogTrigger asChild>
+        <Button>
+          <Pencil/>
+          Assign
+        </Button>
+    </DialogTrigger>
+    <DialogContent className="sm:max-w-[50vw]">
+      <DialogHeader>
+        <DialogTitle>
+          Assign Duty
+        </DialogTitle>
+      </DialogHeader>
+      <form className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar"
+        onSubmit={e => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+      >
+        <Label htmlFor=''>Semester Cycle</Label>
+        <Select name='semCycle' value={semCycle} onValueChange={setSemCycle}>
+          <SelectTrigger id='semCycle'>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='odd'>
+              Nov./Dec.
+            </SelectItem>
+            <SelectItem value='even'>
+              April/May
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <Label htmlFor='year'>Year</Label>
+        <Input
+          id='year'
+          type='number'
+          value={year === 0 ? NaN : year}
+          onChange={e => setYear(Number(e.target.value))}
+        >
+        </Input>
+        <Label htmlFor='questionCount'>Question Count</Label>
+        <Input
+          type='number'
+          id='questionCount'
+          value={questionCount}
+          onChange={e => setQuestionCount(Number(e.target.value))}
+        >
+        </Input>
+      </form>
+      <DialogFooter>
+        <Button onClick={() => handleSubmit()} disabled={assignDutyMut.isPending}>
+          Save
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+}
+
+function AssignPracticalDutyDialog() {
+
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [semCycle, setSemCycle] = useState<string>(new Date().getMonth() > 6 ? 'odd': 'even');
+  const [courseCode, setCourseCode] = useState<string>('');
+
+  const { id } = useParams();
+
+  const assignDutyMut = useMutation({
+    mutationFn: async (v: Omit<PracticalDutyDTO, 'id'>) => {
+      const res = await apiClient.post<PracticalDutyDTO>(`/examiners/${id}/practical-duties`, v);
+      return res.data;
+    } 
+  })
+
+  const handleSubmit = () => {
+    const mutPromise = assignDutyMut.mutateAsync({
+      year: year.toString(), 
+      sem: semCycle,
+      courseCode: courseCode
+    });
+    toast.promise(mutPromise, {
+      loading: 'Assigning.',
+      success: 'Assigned.',
+      error: (e) => e.response?.data?.message ?? 'something went wrong, cant assign duty.',
+    })
+    mutPromise.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}));
+    mutPromise.then(() => setIsEditorOpen(false));
+  }
+
+  return <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen} >
+    <DialogTrigger asChild>
+        <Button>
+          <Pencil/>
+          Assign
+        </Button>
+    </DialogTrigger>
+    <DialogContent className="sm:max-w-[50vw]">
+      <DialogHeader>
+        <DialogTitle>
+          Assign Duty
+        </DialogTitle>
+      </DialogHeader>
+      <form className="space-y-3 p-3 max-h-[70vh] overflow-y-scroll relative no-scrollbar"
+        onSubmit={e => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+      >
+        <Label htmlFor=''>Semester Cycle</Label>
+        <Select name='semCycle' value={semCycle} onValueChange={setSemCycle}>
+          <SelectTrigger id='semCycle'>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='odd'>
+              Nov./Dec.
+            </SelectItem>
+            <SelectItem value='even'>
+              April/May
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <Label htmlFor='year'>Year</Label>
+        <Input
+          id='year'
+          type='number'
+          value={year === 0 ? NaN : year}
+          onChange={e => setYear(Number(e.target.value))}
+        >
+        </Input>
+        <Label htmlFor='courseCode'>Question Count</Label>
+        <Input
+          id='courseCode'
+          value={courseCode}
+          onChange={e => setCourseCode(e.target.value.toUpperCase())}
+        >
+        </Input>
+      </form>
+      <DialogFooter>
+        <Button onClick={() => handleSubmit()} disabled={assignDutyMut.isPending}>
+          Save
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+}
+
 function OwnPreferencesEditor() {
 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -1361,5 +1483,219 @@ function ConfirmPopup({confirmCb}: {confirmCb: () => void}) {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  )
+}
+
+export function DutyTabs() {
+  const userContext = useUserContext();
+  const ability = abilitiesFor(userContext.data)
+
+  const { id } = useParams();
+
+  const query = useQuery({
+    queryFn: async() => {
+      const res = await apiClient.get<TsUserDetailedDTO>(`/examiners/${id}`)
+      return res.data;
+    },
+    queryKey: ['examiner', id]
+  });
+
+  const qpDutyDeleteMut = useMutation({
+    mutationFn: async (v: {dutyId: string}) => {
+      const res = await apiClient.delete<QPDutyDTO>(`/examiners/${id}/qp-setting-duties/${v.dutyId}`)
+      return res.data;
+    } 
+  })
+
+  const scrutinydutyDeleteMut = useMutation({
+    mutationFn: async (v: {dutyId: string}) => {
+      const res = await apiClient.delete<ScrutinyDutyDTO>(`/examiners/${id}/scrutiny-duties/${v.dutyId}`)
+      return res.data;
+    } 
+  })
+
+  const practicaldutyDeleteMut = useMutation({
+    mutationFn: async (v: {dutyId: string}) => {
+      const res = await apiClient.delete<PracticalDutyDTO>(`/examiners/${id}/practical-duties/${v.dutyId}`)
+      return res.data;
+    } 
+  })
+
+  if(query.isLoading) {
+    return <h1>Loading...</h1>
+  }
+  if(! query.data) {
+    return <h1>something went wrong</h1>
+  }
+  const duties = ['qpSettingDuty', 'scrutinyDuty', 'practicalDuty'] as const;
+
+  return (
+    <Tabs defaultValue={
+        duties.find(d => ability.can('view', d))
+      }
+      className="w-full border rounded-(--radius)"
+    >
+      <TabsList className='w-full rounded-t-(--radius) rounded-b-none'>
+      {ability.can('view', 'qpSettingDuty') &&
+        <TabsTrigger value="qpSettingDuty">QP setting Duties</TabsTrigger>
+      }
+      {ability.can('view', 'scrutinyDuty') &&
+        <TabsTrigger value="scrutinyDuty">Scrutiny Duties</TabsTrigger>
+      }
+      {ability.can('view', 'practicalDuty') &&
+        <TabsTrigger value="practicalDuty">Practical Duties</TabsTrigger>
+      }
+      </TabsList>
+
+      <TabsContent value="qpSettingDuty">
+        {/*Question Paper Setting Assignment*/}
+        { ability.can('view', 'qpSettingDuty') && (query.data.qpSettingDuties) &&
+          <div className="space-y-2 max-h-100 overflow-y-scroll max-w-260 mx-auto px-1">
+              {
+                (query.data.qpSettingDuties.length === 0)
+                && <div className='text-destructive ml-3'>no duty assigned</div>
+              }
+              {query.data.qpSettingDuties && query.data.qpSettingDuties
+                .sort((a,b) => {
+                  const res = Number(b.year) - Number(a.year)
+                  // same year
+                  if(res === 0) {
+                    return a.sem > b.sem ? -1 : 1;
+                  }
+                  return res;
+                })
+                .map(duty => 
+                  <div key={duty.id} className="px-2 py-1 flex justify-between bg-secondary rounded-(--radius)">
+                    <div className='content-center'>
+                      {duty.sem === 'odd' && 'Nov./Dec.'}
+                      {duty.sem === 'even' && 'April/May'}
+                    </div>
+                    <div className='content-center'>
+                      {duty.year}
+                    </div>
+                    <div className='content-center'>
+                      {duty.courseCode}
+                    </div>
+                    <ConfirmPopup confirmCb={() => {
+                      const mP = qpDutyDeleteMut.mutateAsync({dutyId: duty.id});
+                      toast.promise(mP, {
+                        loading: 'deleting duty.',
+                        success: 'duty deleted.',
+                        error: (e) => e.response?.data?.message ?? 'Cant delete Duty.',
+                      })
+                      mP.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}))
+                    }} />
+                  </div>
+                )
+              }
+          </div>
+        }
+        <div className="flex justify-end px-2 py-2 bg-secondary rounded-b-(--radius) mt-2">
+        { ability.can('create', 'qpSettingDuty') &&
+          <AssignQPSettingDutyDialog />
+        }
+        </div>
+      </TabsContent>
+
+      <TabsContent value="scrutinyDuty">
+        {/*scrutiny Assignment*/}
+        { ability.can('view', 'scrutinyDuty') && (query.data.scrutinyDuties) &&
+          <div className="space-y-2 max-h-100 overflow-y-scroll max-w-260 mx-auto px-1">
+              {
+                (query.data.scrutinyDuties.length === 0)
+                && <div className='text-destructive ml-3'>no duty assigned</div>
+              }
+              {query.data.scrutinyDuties && query.data.scrutinyDuties
+                .sort((a,b) => {
+                  const res = Number(b.year) - Number(a.year)
+                  // same year
+                  if(res === 0) {
+                    return a.sem > b.sem ? -1 : 1;
+                  }
+                  return res;
+                })
+                .map(duty => 
+                  <div key={duty.id} className="px-2 py-1 flex justify-between bg-secondary rounded-(--radius)">
+                    <div className='content-center'>
+                      {duty.sem === 'odd' && 'Nov./Dec.'}
+                      {duty.sem === 'even' && 'April/May'}
+                    </div>
+                    <div className='content-center'>
+                      {duty.year}
+                    </div>
+                    <div className='content-center'>
+                      {duty.questionCount}
+                    </div>
+                    <ConfirmPopup confirmCb={() => {
+                      const mP = scrutinydutyDeleteMut.mutateAsync({dutyId: duty.id});
+                      toast.promise(mP, {
+                        loading: 'deleting duty.',
+                        success: 'duty deleted.',
+                        error: (e) => e.response?.data?.message ?? 'Cant delete Duty.',
+                      })
+                      mP.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}))
+                    }} />
+                  </div>
+                )
+              }
+          </div>
+        }
+        <div className="flex justify-end px-2 py-2 bg-secondary rounded-b-(--radius) mt-2">
+        { ability.can('create', 'qpSettingDuty') &&
+          <AssignScrutinyDutyDialog />
+        }
+        </div>
+      </TabsContent>
+
+      <TabsContent value="practicalDuty">
+        {/*Practical Assignment*/}
+        { ability.can('view', 'practicalDuty') && (query.data.practicalDuties) &&
+          <div className="space-y-2 max-h-100 overflow-y-scroll max-w-260 mx-auto px-1">
+              {
+                (query.data.practicalDuties.length === 0)
+                && <div className='text-destructive ml-3'>no duty assigned</div>
+              }
+              {query.data.practicalDuties && query.data.practicalDuties
+                .sort((a,b) => {
+                  const res = Number(b.year) - Number(a.year)
+                  // same year
+                  if(res === 0) {
+                    return a.sem > b.sem ? -1 : 1;
+                  }
+                  return res;
+                })
+                .map(duty => 
+                  <div key={duty.id} className="px-2 py-1 flex justify-between bg-secondary rounded-(--radius)">
+                    <div className='content-center'>
+                      {duty.sem === 'odd' && 'Nov./Dec.'}
+                      {duty.sem === 'even' && 'April/May'}
+                    </div>
+                    <div className='content-center'>
+                      {duty.year}
+                    </div>
+                    <div className='content-center'>
+                      {duty.courseCode}
+                    </div>
+                    <ConfirmPopup confirmCb={() => {
+                      const mP = practicaldutyDeleteMut.mutateAsync({dutyId: duty.id});
+                      toast.promise(mP, {
+                        loading: 'deleting duty.',
+                        success: 'duty deleted.',
+                        error: (e) => e.response?.data?.message ?? 'Cant delete Duty.',
+                      })
+                      mP.then(() => queryClient.invalidateQueries({queryKey: ['examiner', id]}))
+                    }} />
+                  </div>
+                )
+              }
+          </div>
+        }
+        <div className="flex justify-end px-2 py-2 bg-secondary rounded-b-(--radius) mt-2">
+        { ability.can('create', 'practicalDuty') &&
+          <AssignPracticalDutyDialog />
+        }
+        </div>
+      </TabsContent>
+    </Tabs>
   )
 }
