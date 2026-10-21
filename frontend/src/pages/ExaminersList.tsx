@@ -307,6 +307,7 @@ type DutyCount = {
 }
 
 // Popover is disliked by coe.
+// @ts-ignore
 function DutyCountPopOver(dutyCount: DutyCount) {
   return (
     <Popover>
