@@ -271,7 +271,7 @@ export default function ExaminersList() {
               <p className="flex items-center">{examiner.bio.yearOfExperience} years</p>
 
               {isMobile && <p className="flex items-center">Duty count</p>}
-              <DutyCountPopOver
+              <DutyCountDisplay
                 qpSettingDutiesCount={examiner.qpSettingDutiesCount}
                 scrutinyDutiesCount={examiner.scrutinyDutiesCount}
                 practicalDutiesCount={examiner.practicalDutiesCount}
@@ -305,6 +305,8 @@ type DutyCount = {
   scrutinyDutiesCount?: number,
   practicalDutiesCount?: number
 }
+
+// Popover is disliked by coe.
 function DutyCountPopOver(dutyCount: DutyCount) {
   return (
     <Popover>
@@ -323,4 +325,33 @@ function DutyCountPopOver(dutyCount: DutyCount) {
       </PopoverContent>
     </Popover>
   )
+}
+// so using simple flex container to display
+function DutyCountDisplay(dutyCount: DutyCount) {
+  return <div className="flex flex-col justify-center">
+    {dutyCount.qpSettingDutiesCount?.toString() &&
+      <div className="flex justify-between">
+        <span>QP: </span>
+        <span>
+          {dutyCount.qpSettingDutiesCount}
+        </span>
+      </div>
+    }
+    {dutyCount.scrutinyDutiesCount?.toString() &&
+      <div className="flex justify-between">
+        <span>Scru: </span>
+        <span>
+          {dutyCount.scrutinyDutiesCount}
+        </span>
+      </div>
+    }
+    {dutyCount.practicalDutiesCount?.toString() &&
+      <div className="flex justify-between">
+        <span>Prac: </span>
+        <span>
+          {dutyCount.practicalDutiesCount}
+        </span>
+      </div>
+    }
+  </div>
 }
